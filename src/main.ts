@@ -1,10 +1,12 @@
 import { APIServer } from "./APIServer";
 import { WebSiteInfo, WebSiteWatcher } from "./WebSiteWatcher"
 
+require("dotenv").config();
+
 const api = new APIServer({
     port: 443,
-    keyPath: "self.key",
-    certPath: "self.crt"
+    keyPath: process.env.API_SERVER_KEY_PATH as string,
+    certPath: process.env.API_SERVER_CERT_PATH as string
 });
 api.start();
 
