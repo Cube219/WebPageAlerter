@@ -1,4 +1,5 @@
 import express from "express";
+import helmet from "helmet";
 import bodyParser from "body-parser";
 
 import http from "http";
@@ -61,6 +62,13 @@ export class APIServer
 
     private initExpress()
     {
+        this.expressApp.use(helmet());
+        this.expressApp.use(helmet.contentSecurityPolicy({
+            directives: {
+                defaultSrc: ["'self'"]
+            }
+        }))
+
         this.expressApp.use(bodyParser.urlencoded({ extended: false}));
 
         const router = express.Router();
