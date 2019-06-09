@@ -6,6 +6,7 @@ import http2 from "http2";
 import spdy from "spdy";
 
 import fs from "fs";
+import { NextFunction } from "connect";
 
 export interface APIServerInitializer
 {
@@ -27,8 +28,7 @@ export class APIServer
         this.port = init.port;
 
         this.expressApp = express();
-
-        this.expressApp.use(bodyParser.urlencoded({ extended: false}));
+        this.initExpress();
 
         const options = {
             key: fs.readFileSync(init.keyPath),
@@ -43,15 +43,79 @@ export class APIServer
         });
     }
 
-    start()
+    public start()
     {
-        this.spdyServer.listen(443);
-        this.httpServer.listen(80);
+        this.httpServer.listen(80, ()=> {
+            console.log("Started http server for redirecting to https.");
+        });
+        this.spdyServer.listen(443, ()=> {
+            console.log("Started APIServer.");
+        });
     }
 
-    stop()
+    public stop()
     {
         this.spdyServer.close();
         this.httpServer.close();
+    }
+
+    private initExpress()
+    {
+        this.expressApp.use(bodyParser.urlencoded({ extended: false}));
+
+        const router = express.Router();
+
+        router.route("/page-infos").get(this.getPageInfos);
+        router.route("/page").delete(this.deletePage);
+        router.route("/page/read").post(this.markPageAsRead);
+
+        router.route("/site-infos").get(this.getSiteInfos);
+        router.route("/site").put(this.addSite);
+        router.route("/site").delete(this.deleteSite);
+
+        this.expressApp.use("/", router);
+    }
+
+    // Routing functions
+    private getPageInfos(req: express.Request, res: express.Response)
+    {
+        res.set({ 'content-type': 'application/json; charset=utf-8' });
+        res.write("구현중");
+        res.end();
+    }
+
+    private deletePage(req: express.Request, res: express.Response)
+    {
+        res.set({ 'content-type': 'application/json; charset=utf-8' });
+        res.write("구현중");
+        res.end();
+    }
+
+    private markPageAsRead(req: express.Request, res: express.Response)
+    {
+        res.set({ 'content-type': 'application/json; charset=utf-8' });
+        res.write("구현중");
+        res.end();
+    }
+
+    private getSiteInfos(req: express.Request, res: express.Response)
+    {
+        res.set({ 'content-type': 'application/json; charset=utf-8' });
+        res.write("구현중");
+        res.end();
+    }
+
+    private addSite(req: express.Request, res: express.Response)
+    {
+        res.set({ 'content-type': 'application/json; charset=utf-8' });
+        res.write("구현중");
+        res.end();
+    }
+
+    private deleteSite(req: express.Request, res: express.Response)
+    {
+        res.set({ 'content-type': 'application/json; charset=utf-8' });
+        res.write("구현중");
+        res.end();
     }
 }

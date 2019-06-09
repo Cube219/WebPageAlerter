@@ -1,10 +1,8 @@
-import { APIServerInitializer, APIServer } from "./APIServer";
+import { APIServer } from "./APIServer";
 
-const apiInit: APIServerInitializer = {
+const api = new APIServer({
     port: 443,
     keyPath: "self.key",
     certPath: "self.crt"
-}
-
-const api = new APIServer(apiInit);
+});
 api.start();
