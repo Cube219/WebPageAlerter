@@ -1,5 +1,6 @@
 export interface WebSiteInfo
 {
+    _id?: string;
     title: string;
     url: string;
     crawlUrl: string;
@@ -10,7 +11,8 @@ export interface WebSiteInfo
 
 export interface WebPageInfo
 {
-    siteTitle: string;
+    _id?: string;
+    siteId: string;
     title: string;
     url: string;
     imageUrl: string;

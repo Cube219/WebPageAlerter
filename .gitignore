@@ -40,3 +40,5 @@ dist/**/*
 # Cert keys for testing
 self.key
 self.crt
+
+test.ts
