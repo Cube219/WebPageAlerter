@@ -147,6 +147,82 @@ class DB
 
         return res.n;
     }
+
+    async getPages(params: GetPagesParams)
+    {
+        let condition: any = {}
+        if(params.onlyUnread) {
+            condition["isRead"] = { $eq: false };
+        }
+        if(params.category) {
+            condition["category"] = { $eq: params.category };
+        }
+
+        const query = SavedWebPageModel.find(condition);
+        if(params.startIndex) {
+            query.skip(params.startIndex);
+        }
+        if(params.count) {
+            query.limit(params.count);
+        }
+        const queryRes = await query.sort({ time: -1 });
+
+        let res: WebPageInfo[] = [];
+        for(let i in queryRes) {
+            const r = queryRes[i];
+
+            res[i] = {
+                _id: r._id,
+                siteId: r.siteId,
+                title: r.title,
+                url: r.url,
+                imageUrl: r.imageUrl,
+                desc: r.desc,
+                category: r.category,
+                time: r.time,
+                isRead: r.isRead
+            };
+        }
+
+        return res;
+    }
+
+    async insertPage(info: WebPageInfo)
+    {
+        const doc = new SavedWebPageModel({
+            siteId: info.siteId,
+            title: info.title,
+            url: info.url,
+            imageUrl: info.imageUrl,
+            desc: info.desc,
+            category: info.category,
+            time: info.time,
+            isRead: info.isRead
+        });
+        await doc.save();
+    }
+
+    async deletePage(id: string)
+    {
+        const res = await SavedWebPageModel.deleteOne({ _id: id });
+
+        if(res.ok != 1) {
+            throw Error();
+        }
+        
+        return res.n;
+    }
+
+    async readPage(id: string)
+    {
+        const res = await SavedWebPageModel.updateOne({ _id: id }, { $set: { isRead: true } });
+
+        if(res.ok != 1) {
+            throw Error();
+        }
+
+        return res.n;
+    }
 }
 
 const db = new DB();
