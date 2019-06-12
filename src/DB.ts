@@ -1,7 +1,6 @@
 import mongoose from "mongoose"
 import { WebSiteInfo, WebPageInfo } from "./WebSiteWatcher"
-import { resolve } from "dns";
-import { rejects } from "assert";
+import { Log } from "./Log"
 
 mongoose.Promise = global.Promise;
 
@@ -78,6 +77,7 @@ class DB
     init(init: DBInitializer)
     {
         mongoose.connect(`mongodb://${init.url}:${init.port}/web_page_alerter`, { useNewUrlParser: true });
+        Log.info("Started DB.");
     }
 
     shutdown()

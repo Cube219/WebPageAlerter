@@ -7,7 +7,7 @@ import http2 from "http2";
 import spdy from "spdy";
 
 import fs from "fs";
-import { NextFunction } from "connect";
+import { Log } from "./Log";
 
 export interface APIServerInitializer
 {
@@ -47,10 +47,10 @@ export class APIServer
     public start()
     {
         this.httpServer.listen(80, ()=> {
-            console.log("Started http server for redirecting to https.");
+            Log.info("Started http server for redirecting to https.")
         });
         this.spdyServer.listen(443, ()=> {
-            console.log("Started APIServer.");
+            Log.info("Started APIServer.");
         });
     }
 

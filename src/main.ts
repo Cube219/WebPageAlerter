@@ -1,7 +1,10 @@
 import { APIServer } from "./APIServer";
 import { WebSiteInfo, WebSiteWatcher } from "./WebSiteWatcher"
+import { initLog } from "./Log"
 
 require("dotenv").config();
+
+initLog();
 
 const api = new APIServer({
     port: 443,
