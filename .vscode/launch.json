@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Program",
+            "program": "${workspaceFolder}/src/main.ts",
+            "cwd": "${workspaceFolder}/dist",
+            "outFiles": ["${workspaceFolder}/dist/*"],
+            "sourceMaps": true
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Test Program",
+            "program": "${workspaceFolder}/src/test.ts",
+            "cwd": "${workspaceFolder}/dist",
+            "outFiles": ["${workspaceFolder}/dist/*"],
+            "sourceMaps": true
+        }
+    ]
+}

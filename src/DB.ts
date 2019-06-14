@@ -47,6 +47,7 @@ interface ISavedWebPage extends mongoose.Document
 }
 const SavedWebPageModel = mongoose.model<ISavedWebPage>('saved_web_page', savedWebPage);
 
+// Function params
 interface UpdateWebSiteParams
 {
     crawlUrl?: string;
@@ -139,7 +140,7 @@ class DB
 
     async updateWebSite(id: string, params: UpdateWebSiteParams)
     {
-        const res = await WebSiteInfoModel.updateOne({ _id: id }, { $set: params });
+        const res = await WebSiteInfoModel.updateOne({ _id: id }, { $set: params }, { omitUndefined: true });
 
         if(res.ok != 1) {
             throw Error();
@@ -151,7 +152,7 @@ class DB
     async getPages(params: GetPagesParams)
     {
         let condition: any = {}
-        if(params.onlyUnread) {
+        if(params.onlyUnread == true) {
             condition["isRead"] = { $eq: false };
         }
         if(params.category) {
