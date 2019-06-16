@@ -8,8 +8,8 @@ export { logger as Log }
 
 export function initLog()
 {
-    if(fs.existsSync("log") == false) {
-        fs.mkdirSync("log");
+    if(fs.existsSync("logs") == false) {
+        fs.mkdirSync("logs");
     }
 
     const format = winston.format.printf((info) => 
@@ -17,7 +17,7 @@ export function initLog()
     );
 
     const fileTransport = new winstonDaily({
-        filename: "log/%DATE%-logs.log",
+        filename: "logs/%DATE%-logs.log",
         datePattern: "YYYY-MM-DD",
         maxSize: "128k",
         maxFiles: "30d",

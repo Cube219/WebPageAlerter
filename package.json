@@ -4,7 +4,8 @@
   "description": "Web page alerter.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon --watch dist/ --ignore dist/log/ dist/main.js"
   },
   "author": "Cube219",
   "license": "MIT",
@@ -35,5 +36,7 @@
     "winston": "^3.2.1",
     "winston-daily-rotate-file": "^3.9.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "nodemon": "^1.19.1"
+  }
 }
