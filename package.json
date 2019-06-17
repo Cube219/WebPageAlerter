@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon --watch dist/ --ignore dist/log/ dist/main.js"
+    "dev": "nodemon --watch dist/ --ignore dist/log/ --delay 2 dist/main.js"
   },
   "author": "Cube219",
   "license": "MIT",

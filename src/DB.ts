@@ -34,6 +34,7 @@ const savedWebPage = new mongoose.Schema({
     time: Date,
     isRead: Boolean
 });
+savedWebPage.index({ time: -1 });
 interface ISavedWebPage extends mongoose.Document
 {
     siteId: string;
@@ -108,6 +109,24 @@ class DB
         return res;
     }
 
+    async getWebSite(id: string)
+    {
+        const queryRes = await WebSiteInfoModel.find({ _id: id });
+        
+        const r = queryRes[0];
+        const res: WebSiteInfo = {
+            _id: r._id,
+            title: r.title,
+            url: r.url,
+            crawlUrl: r.crawlUrl,
+            cssSelector: r.cssSelector,
+            lastTitle: r.lastTitle,
+            category: r.category
+        }
+
+        return res;
+    }
+
     async insertWebSite(info: WebSiteInfo)
     {
         const doc = new WebSiteInfoModel({
@@ -118,7 +137,7 @@ class DB
             lastTitle: info.lastTitle,
             category: info.category
         });
-        await doc.save();
+        return doc.save();
     }
 
     async deleteWebSite(id: string, deleteAllPages: boolean = false)
@@ -188,6 +207,26 @@ class DB
         return res;
     }
 
+    async getPage(id: string)
+    {
+        const queryRes = await SavedWebPageModel.find({ _id: id });
+        
+        const r = queryRes[0];
+        const res: WebPageInfo = {
+            _id: r._id,
+            siteId: r.siteId,
+            title: r.title,
+            url: r.url,
+            imageUrl: r.imageUrl,
+            desc: r.desc,
+            category: r.category,
+            time: r.time,
+            isRead: r.isRead
+        }
+
+        return res;
+    }
+
     async insertPage(info: WebPageInfo)
     {
         const doc = new SavedWebPageModel({
@@ -200,7 +239,7 @@ class DB
             time: info.time,
             isRead: info.isRead
         });
-        await doc.save();
+        return doc.save();
     }
 
     async deletePage(id: string)

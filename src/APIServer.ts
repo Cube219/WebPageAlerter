@@ -7,9 +7,10 @@ import http from "http";
 import http2 from "http2";
 
 import fs from "fs";
-import { Log } from "./Log";
 
-import { DB } from "./DB";
+import { Log } from "./Log";
+import { Core } from "./Core";
+import { resolve } from "dns";
 
 export interface APIServerInitializer
 {
@@ -20,6 +21,8 @@ export interface APIServerInitializer
 
 export class APIServer
 {
+    private core: Core = new Core(); // Empty core
+
     private koaApp: koa;
     private port: number;
 
@@ -48,13 +51,20 @@ export class APIServer
         });
     }
 
-    public start()
+    public async start(core: Core)
     {
-        this.httpServer.listen(80, ()=> {
-            Log.info("Started http server for redirecting to https.")
-        });
-        this.server.listen(443, () => {
-            Log.info("Started APIServer.");
+        return new Promise((resolve, reject) => {
+            this.core = core;
+        
+            this.httpServer.listen(80, ()=> {
+                Log.info("Started http server for redirecting to https.");
+
+                this.server.listen(443, () => {
+                    Log.info("Started APIServer.");
+
+                    resolve();
+                });
+            });
         });
     }
 
@@ -89,14 +99,14 @@ export class APIServer
 
         const router = new koaRouter();
         
-        router.get("/pages", this.getPages);
-        router.delete("/page/:id", this.deletePage);
-        router.put("/page/read/:id", this.markPageAsRead);
+        router.get("/pages", this.getPages.bind(this));
+        router.delete("/page/:id", this.deletePage.bind(this));
+        router.put("/page/read/:id", this.markPageAsRead.bind(this));
 
-        router.get("/sites", this.getSites);
-        router.post("/site", this.addSite);
-        router.put("/site/:id", this.updateSite);
-        router.delete("/site/:id", this.deleteSite);
+        router.get("/sites", this.getSites.bind(this));
+        router.post("/site", this.addSite.bind(this));
+        router.put("/site/:id", this.updateSite.bind(this));
+        router.delete("/site/:id", this.deleteSite.bind(this));
 
         this.koaApp.use(router.routes());
         this.koaApp.use(router.allowedMethods());
@@ -114,7 +124,7 @@ export class APIServer
         }
 
         try {
-            const r = await DB.getPages({
+            const r = await this.core.getPages({
                 onlyUnread: (params.onlyUnread == "true"),
                 category: params.category,
                 startIndex: startIndex,
@@ -132,7 +142,7 @@ export class APIServer
     private async deletePage(ctx: koa.ParameterizedContext, next: () => Promise<any>)
     {
         try {
-            const res = await DB.deletePage(ctx.params.id);
+            const res = await this.core.deletePage(ctx.params.id);
             
             if(res == 0) {
                 Log.warn(`Tried to delete the page '${ctx.params.id}', but could not find.`);
@@ -148,7 +158,7 @@ export class APIServer
     private async markPageAsRead(ctx: koa.ParameterizedContext, next: () => Promise<any>)
     {
         try {
-            const res = await DB.readPage(ctx.params.id);
+            const res = await this.core.readPage(ctx.params.id);
 
             if(res == 0) {
                 Log.warn(`Tried to read the page '${ctx.params.id}', but could not find.`);
@@ -163,7 +173,7 @@ export class APIServer
 
     private async getSites(ctx: koa.ParameterizedContext, next: () => Promise<any>)
     {
-        const res = await DB.getWebSites();
+        const res = await this.core.getWebSites();
         
         ctx.status = 200;
         ctx.body = res;
@@ -182,7 +192,7 @@ export class APIServer
         }
 
         try {
-            await DB.insertWebSite({
+            await this.core.insertWebSite({
                 title: params.title,
                 url: params.url,
                 crawlUrl: params.crawlUrl,
@@ -203,7 +213,7 @@ export class APIServer
         const params = ctx.request.body;
         
         try {
-            const res = await DB.updateWebSite(ctx.params.id, {
+            const res = await this.core.updateWebSite(ctx.params.id, {
                 crawlUrl: params.crawlUrl,
                 cssSelector: params.cssSelector,
                 category: params.category
@@ -225,13 +235,13 @@ export class APIServer
         const params = ctx.request.body;
         
         try {
-            const res = await DB.deleteWebSite(ctx.params.id, (params.deleteAllPages == "true"));
+            const res = await this.core.deleteWebSite(ctx.params.id, (params.deleteAllPages == "true"));
 
             if(res == 0) {
                 Log.warn(`Tried to delete the page '${ctx.params.id}', but could not find.`);
             }
 
-            ctx.state = 204;
+            ctx.status = 204;
         } catch(e) {
             e.message += `${e}\n        Web site id: ${ctx.params.id}\n    Request parameters: ${JSON.stringify(params)}`;
             throw e;

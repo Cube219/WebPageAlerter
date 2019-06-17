@@ -51,7 +51,7 @@ export class WebSiteWatcher
 
     public run()
     {
-        this.intervalId = setInterval(this.runInternal, this.intervalTimeSec * 1000);
+        this.intervalId = setInterval(this.runInternal.bind(this), this.intervalTimeSec * 1000);
     }
 
     public stop()
@@ -61,8 +61,13 @@ export class WebSiteWatcher
         }
     }
 
+    public getId()
+    {
+        return this.siteInfo._id;
+    }
+
     private runInternal()
     {
-        console.log("Run Internal");
+        console.log(`Run Internal (${this.siteInfo._id})`);
     }
 }
