@@ -42,3 +42,4 @@ self.key
 self.crt
 
 test.ts
+page_data/*

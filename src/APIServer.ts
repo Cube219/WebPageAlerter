@@ -2,6 +2,7 @@ import koa from "koa";
 import koaRouter from "koa-router";
 import koaHelmet from "koa-helmet";
 import koaBodyParser from "koa-bodyparser";
+import koaStatic from "koa-static";
 
 import http from "http";
 import http2 from "http2";
@@ -10,7 +11,6 @@ import fs from "fs";
 
 import { Log } from "./Log";
 import { Core } from "./Core";
-import { resolve } from "dns";
 
 export interface APIServerInitializer
 {
@@ -97,6 +97,8 @@ export class APIServer
 
         this.koaApp.use(koaBodyParser());
 
+        this.koaApp.use(koaStatic("page_data"));
+
         const router = new koaRouter();
         
         router.get("/pages", this.getPages.bind(this));
@@ -142,11 +144,7 @@ export class APIServer
     private async deletePage(ctx: koa.ParameterizedContext, next: () => Promise<any>)
     {
         try {
-            const res = await this.core.deletePage(ctx.params.id);
-            
-            if(res == 0) {
-                Log.warn(`Tried to delete the page '${ctx.params.id}', but could not find.`);
-            }
+            await this.core.deletePage(ctx.params.id);
 
             ctx.status = 204;
         } catch(e) {
@@ -158,11 +156,7 @@ export class APIServer
     private async markPageAsRead(ctx: koa.ParameterizedContext, next: () => Promise<any>)
     {
         try {
-            const res = await this.core.readPage(ctx.params.id);
-
-            if(res == 0) {
-                Log.warn(`Tried to read the page '${ctx.params.id}', but could not find.`);
-            }
+            await this.core.readPage(ctx.params.id);
 
             ctx.status = 204;
         } catch(e) {
@@ -213,15 +207,11 @@ export class APIServer
         const params = ctx.request.body;
         
         try {
-            const res = await this.core.updateWebSite(ctx.params.id, {
+            await this.core.updateWebSite(ctx.params.id, {
                 crawlUrl: params.crawlUrl,
                 cssSelector: params.cssSelector,
                 category: params.category
             });
-
-            if(res == 0) {
-                Log.warn(`Tried to update the page '${ctx.params.id}', but could not find.`);
-            }
 
             ctx.status = 204;
         } catch(e) {
@@ -235,11 +225,7 @@ export class APIServer
         const params = ctx.request.body;
         
         try {
-            const res = await this.core.deleteWebSite(ctx.params.id, (params.deleteAllPages == "true"));
-
-            if(res == 0) {
-                Log.warn(`Tried to delete the page '${ctx.params.id}', but could not find.`);
-            }
+            await this.core.deleteWebSite(ctx.params.id, (params.deleteAllPages == "true"));
 
             ctx.status = 204;
         } catch(e) {

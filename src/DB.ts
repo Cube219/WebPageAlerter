@@ -54,6 +54,13 @@ interface UpdateWebSiteParams
     crawlUrl?: string;
     cssSelector?: string;
     category?: string;
+    lastTitle?: string;
+}
+
+interface UpdatePageParams
+{
+    isRead?: boolean;
+    imageUrl?: string;
 }
 
 interface GetPagesParams
@@ -253,9 +260,9 @@ class DB
         return res.n;
     }
 
-    async readPage(id: string)
+    async updatePage(id: string, params: UpdatePageParams)
     {
-        const res = await SavedWebPageModel.updateOne({ _id: id }, { $set: { isRead: true } });
+        const res = await SavedWebPageModel.updateOne({ _id: id }, { $set: params }, { omitUndefined: true });
 
         if(res.ok != 1) {
             throw Error();
