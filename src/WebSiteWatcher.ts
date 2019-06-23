@@ -118,12 +118,29 @@ export class WebSiteWatcher
         const res = await req(pageUrl);
         
         const $ = cheerio.load(res);
+        let selected: Cheerio;
 
-        const title = $('meta[property="og:title"]')[0].attribs.content;
-        const url = $('meta[property="og:url"]')[0].attribs.content;
-        const imageUrl = $('meta[property="og:image"]')[0].attribs.content;
-        const desc = $('meta[property="og:description"]')[0].attribs.content;
-
+        let title = "";
+        selected = $('meta[property="og:title"]');
+        if(selected.length != 0) {
+            title = selected[0].attribs.content
+        }
+        let url = "";
+        selected = $('meta[property="og:url"]');
+        if(selected.length != 0) {
+            url = selected[0].attribs.content;
+        }
+        let imageUrl = "";
+        selected = $('meta[property="og:image"]');
+        if(selected.length != 0) {
+            imageUrl = selected[0].attribs.content;
+        }
+        let desc = "";
+        selected = $('meta[property="og:description"]');
+        if(selected.length != 0) {
+            desc = selected[0].attribs.content;
+        }
+        
         const page: WebPageInfo = {
             siteId: this.siteInfo._id as string,
             title: title,
