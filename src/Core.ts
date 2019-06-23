@@ -38,7 +38,7 @@ interface UpdateWebSiteParams
     crawlUrl?: string;
     cssSelector?: string;
     category?: string;
-    lastTitle?: string;
+    lastUrl?: string;
 }
 
 interface GetPagesParams
@@ -170,12 +170,21 @@ export class Core
         if(fs.existsSync(dataDirPath) == false) {
             await fs.promises.mkdir(dataDirPath);
         }
-        console.log(res.response.statusCode);
+        
+        let imagePath: string = "";
         if(res.response.statusCode == 200) {
-            await fs.promises.writeFile(dataDirPath + "image", res.body, "binary");
+            const fileExtension = info.imageUrl.match(/\.\w{3,4}($|\?)/i);
+            if(fileExtension) {
+                imagePath = dataDirPath + "image" + fileExtension[0];
+            } else {
+                imagePath = dataDirPath + "image";
+            }
+
+            await fs.promises.writeFile(imagePath, res.body, "binary");
         }
 
-        await DB.updatePage(info._id as string, { imageUrl: `${info._id}/image` });
+        await DB.updatePage(info._id as string, { imageUrl: imagePath });
+        await DB.updateWebSite(info.siteId, { lastUrl: info.url });
 
         Log.info(`Added a new page. (Site id: ${info.siteId})\n        id: ${info._id} / title: ${info.title}`);
     }

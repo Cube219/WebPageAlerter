@@ -192,7 +192,7 @@ export class APIServer
                 crawlUrl: params.crawlUrl,
                 cssSelector: params.cssSelector,
                 category: params.category,
-                lastTitle: ""
+                lastUrl: ""
             });
 
             ctx.status = 204;

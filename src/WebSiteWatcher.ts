@@ -1,6 +1,7 @@
 import request from "request";
 import cheerio from "cheerio"; 
 import moment from "moment";
+import url from "url";
 
 import { Core } from "./Core";
 import { Log } from "./Log";
@@ -22,7 +23,7 @@ export interface WebSiteInfo
     url: string;
     crawlUrl: string;
     cssSelector: string;
-    lastTitle: string;
+    lastUrl: string;
     category: string;
 }
 
@@ -53,12 +54,15 @@ export class WebSiteWatcher
     private intervalTimeSec: number;
 
     private intervalId?: NodeJS.Timeout;
+    private isBusy: boolean;
 
     constructor(init: WebSiteWatcherInitializer)
     {
         this.core = init.core;
         this.siteInfo = init.info;
         this.intervalTimeSec = init.intervalTimeSec;
+        
+        this.isBusy = false;
     }
 
     public run()
@@ -80,23 +84,33 @@ export class WebSiteWatcher
 
     private runInternal()
     {
+        if(this.isBusy == true)
+            return;
+
         // TODO: 검사 중에는 다 끝날때까지 대기
         this.checkNewPage().catch((e) => {
-            Log.error(`Failed to check a new page.\n        ${e}`);
+            Log.error(`Failed to check a new page.\n        ${e.stack}`);
+
+            this.isBusy = false;
         });
     }
 
     private async checkNewPage()
     {
+        this.isBusy = true;
+
         const res = await req(this.siteInfo.crawlUrl);
 
         const $ = cheerio.load(res);
         const aElement = $(this.siteInfo.cssSelector)[0];
 
-        const title = aElement.children[0].data;
-        if(this.siteInfo.lastTitle != title) {
-            await this.savePage(aElement.attribs.href);
+        const pageUrl = this.relToAbs(aElement.attribs.href);
+        
+        if(this.siteInfo.lastUrl != pageUrl) {
+            await this.savePage(pageUrl);
         }
+
+        this.isBusy = false;
     }
 
     private async savePage(pageUrl: string)
@@ -122,6 +136,19 @@ export class WebSiteWatcher
         };
 
         await this.core.insertPage(page);
-        await this.core.updateWebSite(this.siteInfo._id as string, { lastTitle: title });
+
+        this.siteInfo.lastUrl = pageUrl;
+    }
+
+    private relToAbs(url: string)
+    {
+        const absRegex = /^(?:[a-z]+:)?\/\//i;
+
+        if(absRegex.test(url) == true) {
+            return url;
+        } else {
+            const u = new URL(url, this.siteInfo.url);
+            return u.toString();
+        }
     }
 }

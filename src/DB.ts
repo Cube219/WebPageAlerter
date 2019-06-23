@@ -10,7 +10,7 @@ const webSiteInfo = new mongoose.Schema({
     url: String,
     crawlUrl: String,
     cssSelector: String,
-    lastTitle: String,
+    lastUrl: String,
     category: String
 });
 interface IWebSiteInfo extends mongoose.Document
@@ -19,7 +19,7 @@ interface IWebSiteInfo extends mongoose.Document
     url: string;
     crawlUrl: string;
     cssSelector: string;
-    lastTitle: string;
+    lastUrl: string;
     category: string;
 }
 const WebSiteInfoModel = mongoose.model<IWebSiteInfo>('web_site_info', webSiteInfo);
@@ -54,7 +54,7 @@ interface UpdateWebSiteParams
     crawlUrl?: string;
     cssSelector?: string;
     category?: string;
-    lastTitle?: string;
+    lastUrl?: string;
 }
 
 interface UpdatePageParams
@@ -108,7 +108,7 @@ class DB
                 url: r.url,
                 crawlUrl: r.crawlUrl,
                 cssSelector: r.cssSelector,
-                lastTitle: r.lastTitle,
+                lastUrl: r.lastUrl,
                 category: r.category
             };
         }
@@ -127,7 +127,7 @@ class DB
             url: r.url,
             crawlUrl: r.crawlUrl,
             cssSelector: r.cssSelector,
-            lastTitle: r.lastTitle,
+            lastUrl: r.lastUrl,
             category: r.category
         }
 
@@ -141,7 +141,7 @@ class DB
             url: info.url,
             crawlUrl: info.crawlUrl,
             cssSelector: info.cssSelector,
-            lastTitle: info.lastTitle,
+            lastUrl: info.lastUrl,
             category: info.category
         });
         return doc.save();
