@@ -158,7 +158,7 @@ class DB
         });
 
         if(res.ok != 1) {
-            throw Error();
+            throw Error("Failed to delete the site in DB.");
         }
         
         return res.n;
@@ -169,7 +169,7 @@ class DB
         const res = await WebSiteInfoModel.updateOne({ _id: id }, { $set: params }, { omitUndefined: true });
 
         if(res.ok != 1) {
-            throw Error();
+            throw Error("Failed to update the site in DB.");
         }
 
         return res.n;
@@ -254,7 +254,7 @@ class DB
         const res = await SavedWebPageModel.deleteOne({ _id: id });
 
         if(res.ok != 1) {
-            throw Error();
+            throw Error("Failed to delete the page in DB.");
         }
         
         return res.n;
@@ -265,7 +265,7 @@ class DB
         const res = await SavedWebPageModel.updateOne({ _id: id }, { $set: params }, { omitUndefined: true });
 
         if(res.ok != 1) {
-            throw Error();
+            throw Error("Failed to update the page in DB.");
         }
 
         return res.n;
