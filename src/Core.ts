@@ -158,9 +158,10 @@ export class Core
 
     async insertPage(info: WebPageInfo)
     {
-        const res = await req(info.imageUrl, {encoding: "binary"});
+        const imagePromise = req(info.imageUrl, {encoding: "binary"});
+        const dbPromise = DB.insertPage(info);
 
-        const dbRes = await DB.insertPage(info);
+        const [res, dbRes] = await Promise.all([imagePromise, dbPromise]);
         info._id = dbRes._id;
 
         const dataDirPath = `page_data/${info._id}/`;
@@ -183,8 +184,10 @@ export class Core
             await fs.promises.writeFile(imagePath, res.body, "binary");
         }
 
-        await DB.updatePage(info._id as string, { imageUrl: imagePath });
-        await DB.updateWebSite(info.siteId, { lastUrl: info.url });
+        await Promise.all([
+            DB.updatePage(info._id as string, { imageUrl: imagePath }),
+            DB.updateWebSite(info.siteId, { lastUrl: info.url })
+        ]);
 
         Log.info(`Added a new page. (Site id: ${info.siteId})\n        id: ${info._id} / title: ${info.title}`);
     }
