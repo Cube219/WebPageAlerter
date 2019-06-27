@@ -62,7 +62,7 @@ export class Core
         const infos = await DB.getWebSites();
 
         infos.forEach(info => {
-            this.watchers.push(new WebSiteWatcher({core: this, info: info, intervalTimeSec: 5 }));
+            this.watchers.push(new WebSiteWatcher({core: this, info: info, intervalTimeSec: 900 }));
         });
     }
 
@@ -86,7 +86,7 @@ export class Core
             const resId = (await DB.insertWebSite(info))._id;
             info._id = resId;
 
-            const watcher = new WebSiteWatcher({ core: this, info: info, intervalTimeSec: 5 });
+            const watcher = new WebSiteWatcher({ core: this, info: info, intervalTimeSec: 900 });
             watcher.run();
             this.watchers.push(watcher);
 
@@ -138,7 +138,7 @@ export class Core
                 this.watchers.splice(index, 1);
 
                 const updatedInfo = await DB.getWebSite(id);
-                const watcher = new WebSiteWatcher({ core:this, info: updatedInfo, intervalTimeSec: 5 });
+                const watcher = new WebSiteWatcher({ core:this, info: updatedInfo, intervalTimeSec: 900 });
                 watcher.run();
                 this.watchers.push(watcher);
 
