@@ -11,7 +11,8 @@ const webSiteInfo = new mongoose.Schema({
     crawlUrl: String,
     cssSelector: String,
     lastUrl: String,
-    category: String
+    category: String,
+    checkingCycleSec: Number
 });
 interface IWebSiteInfo extends mongoose.Document
 {
@@ -21,6 +22,7 @@ interface IWebSiteInfo extends mongoose.Document
     cssSelector: string;
     lastUrl: string;
     category: string;
+    checkingCycleSec: number;
 }
 const WebSiteInfoModel = mongoose.model<IWebSiteInfo>('web_site_info', webSiteInfo);
 
@@ -55,6 +57,7 @@ interface UpdateWebSiteParams
     cssSelector?: string;
     category?: string;
     lastUrl?: string;
+    checkingCycleSec?: number;
 }
 
 interface UpdatePageParams
@@ -109,7 +112,8 @@ class DB
                 crawlUrl: r.crawlUrl,
                 cssSelector: r.cssSelector,
                 lastUrl: r.lastUrl,
-                category: r.category
+                category: r.category,
+                checkingCycleSec: r.checkingCycleSec
             };
         }
 
@@ -128,7 +132,8 @@ class DB
             crawlUrl: r.crawlUrl,
             cssSelector: r.cssSelector,
             lastUrl: r.lastUrl,
-            category: r.category
+            category: r.category,
+            checkingCycleSec: r.checkingCycleSec
         }
 
         return res;

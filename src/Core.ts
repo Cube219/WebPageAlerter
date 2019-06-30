@@ -62,7 +62,7 @@ export class Core
         const infos = await DB.getWebSites();
 
         infos.forEach(info => {
-            this.watchers.push(new WebSiteWatcher({core: this, info: info, intervalTimeSec: 900 }));
+            this.watchers.push(new WebSiteWatcher({core: this, info: info }));
         });
     }
 
@@ -86,11 +86,13 @@ export class Core
             const resId = (await DB.insertWebSite(info))._id;
             info._id = resId;
 
-            const watcher = new WebSiteWatcher({ core: this, info: info, intervalTimeSec: 900 });
+            const watcher = new WebSiteWatcher({ core: this, info: info });
             watcher.run();
             this.watchers.push(watcher);
 
             Log.info(`Inserted a web site.\n        id: ${info._id} / title: ${info.title} / url: ${info.url}`);
+
+            watcher.checkImmediately();
         } catch(e) {
             throw e;
         }
@@ -138,7 +140,7 @@ export class Core
                 this.watchers.splice(index, 1);
 
                 const updatedInfo = await DB.getWebSite(id);
-                const watcher = new WebSiteWatcher({ core:this, info: updatedInfo, intervalTimeSec: 900 });
+                const watcher = new WebSiteWatcher({ core:this, info: updatedInfo });
                 watcher.run();
                 this.watchers.push(watcher);
 

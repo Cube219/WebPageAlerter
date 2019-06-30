@@ -5,6 +5,7 @@ import url from "url";
 
 import { Core } from "./Core";
 import { Log } from "./Log";
+import { DB } from "./DB";
 
 function req(url: string, options?: request.CoreOptions): Promise<any> {
     return new Promise(function(resolve, reject) {
@@ -25,6 +26,7 @@ export interface WebSiteInfo
     cssSelector: string;
     lastUrl: string;
     category: string;
+    checkingCycleSec: number;
 }
 
 export interface WebPageInfo
@@ -44,14 +46,12 @@ export interface WebSiteWatcherInitializer
 {
     core: Core;
     info: WebSiteInfo;
-    intervalTimeSec: number;
 }
 
 export class WebSiteWatcher
 {
     private core: Core;
     private siteInfo: WebSiteInfo;
-    private intervalTimeSec: number;
 
     private intervalId?: NodeJS.Timeout;
     private isBusy: boolean;
@@ -60,14 +60,22 @@ export class WebSiteWatcher
     {
         this.core = init.core;
         this.siteInfo = init.info;
-        this.intervalTimeSec = init.intervalTimeSec;
         
         this.isBusy = false;
     }
 
     public run()
     {
-        this.intervalId = setInterval(this.runInternal.bind(this), this.intervalTimeSec * 1000);
+        if(!this.siteInfo.checkingCycleSec) {
+            this.siteInfo.checkingCycleSec = 900;
+
+            DB.updateWebSite(this.siteInfo._id as string, { checkingCycleSec: 900 });
+        }
+
+        // Delay checking when initialized
+        // because of preventing checking many sites at same time
+        const delayTimeSec = Math.random() * this.siteInfo.checkingCycleSec;
+        this.intervalId = setTimeout(this.checkImmediately.bind(this), delayTimeSec * 1000);
     }
 
     public stop()
@@ -75,6 +83,17 @@ export class WebSiteWatcher
         if(this.intervalId) {
             clearTimeout(this.intervalId);
         }
+    }
+
+    public checkImmediately()
+    {
+        if(this.intervalId) {
+            clearTimeout(this.intervalId);
+        }
+
+        this.runInternal();
+
+        this.intervalId = setInterval(this.runInternal.bind(this), this.siteInfo.checkingCycleSec * 1000);
     }
 
     public getSiteId()

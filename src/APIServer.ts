@@ -184,6 +184,9 @@ export class APIServer
         if(!params.category) {
             params.category = "general";
         }
+        if(!params.checkingCycleSec) {
+            params.checkingCycleSec = 900;
+        }
 
         try {
             await this.core.insertWebSite({
@@ -192,7 +195,8 @@ export class APIServer
                 crawlUrl: params.crawlUrl,
                 cssSelector: params.cssSelector,
                 category: params.category,
-                lastUrl: ""
+                lastUrl: "",
+                checkingCycleSec: params.checkingCycleSec
             });
 
             ctx.status = 204;
