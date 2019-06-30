@@ -13,7 +13,7 @@ export function initLog()
     }
 
     const format = winston.format.printf((info) => 
-        `${moment().format("YYYY-MM-DD hh:mm:ss")} [${info.level.toUpperCase()}] - ${info.message}`
+        `${moment().format("YYYY-MM-DD HH:mm:ss")} [${info.level.toUpperCase()}] - ${info.message}`
     );
 
     const fileTransport = new winstonDaily({
