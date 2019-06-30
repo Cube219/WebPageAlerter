@@ -1,6 +1,6 @@
-import mongoose from "mongoose"
-import { WebSiteInfo, WebPageInfo } from "./WebSiteWatcher"
-import { Log } from "./Log"
+import mongoose from "mongoose";
+import { WebSiteInfo, WebPageInfo } from "./Utility";
+import { Log } from "./Log";
 
 mongoose.Promise = global.Promise;
 
@@ -292,7 +292,7 @@ class DB
         const res2 = await ArchievedWebPageModel.deleteOne({ _id: id });
 
         if(res2.ok == 1) {
-            return res.n;
+            return res2.n;
         }
         
         throw Error("Failed to delete the page in DB.");

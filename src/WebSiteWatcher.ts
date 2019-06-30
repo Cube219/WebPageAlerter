@@ -1,46 +1,9 @@
-import request from "request";
-import cheerio from "cheerio"; 
-import moment from "moment";
-import url from "url";
+import cheerio from "cheerio";
 
+import { WebSiteInfo, requestPromise, relToAbsUrl, getPageInfo } from "./Utility";
 import { Core } from "./Core";
 import { Log } from "./Log";
 import { DB } from "./DB";
-
-function req(url: string, options?: request.CoreOptions): Promise<any> {
-    return new Promise(function(resolve, reject) {
-        request(url, options, function(err, response, body) {
-            if(err) return reject(err);
-
-            resolve(body);
-        });
-    });
-}
-
-export interface WebSiteInfo
-{
-    _id?: string;
-    title: string;
-    url: string;
-    crawlUrl: string;
-    cssSelector: string;
-    lastUrl: string;
-    category: string;
-    checkingCycleSec: number;
-}
-
-export interface WebPageInfo
-{
-    _id?: string;
-    siteId: string;
-    title: string;
-    url: string;
-    imageUrl: string;
-    desc: string;
-    category: string;
-    time: Date;
-    isRead: boolean;
-}
 
 export interface WebSiteWatcherInitializer
 {
@@ -69,7 +32,7 @@ export class WebSiteWatcher
         if(!this.siteInfo.checkingCycleSec) {
             this.siteInfo.checkingCycleSec = 900;
 
-            DB.updateWebSite(this.siteInfo._id as string, { checkingCycleSec: 900 });
+            DB.updateWebSite(this.siteInfo._id, { checkingCycleSec: 900 });
         }
 
         // Delay checking when initialized
@@ -118,12 +81,12 @@ export class WebSiteWatcher
     {
         this.isBusy = true;
 
-        const res = await req(this.siteInfo.crawlUrl);
+        const res = await requestPromise(this.siteInfo.crawlUrl);
 
-        const $ = cheerio.load(res);
+        const $ = cheerio.load(res.body);
         const aElement = $(this.siteInfo.cssSelector)[0];
 
-        const pageUrl = this.relToAbs(aElement.attribs.href);
+        const pageUrl = relToAbsUrl(aElement.attribs.href, this.siteInfo.url);
         
         if(this.siteInfo.lastUrl != pageUrl) {
             await this.savePage(pageUrl);
@@ -134,57 +97,12 @@ export class WebSiteWatcher
 
     private async savePage(pageUrl: string)
     {
-        const res = await req(pageUrl);
-        
-        const $ = cheerio.load(res);
-        let selected: Cheerio;
+        const info = await getPageInfo(pageUrl);
+        info.siteId = this.siteInfo._id;
+        info.category = this.siteInfo.category;
 
-        let title = "";
-        selected = $('meta[property="og:title"]');
-        if(selected.length != 0) {
-            title = selected[0].attribs.content
-        }
-        let url = "";
-        selected = $('meta[property="og:url"]');
-        if(selected.length != 0) {
-            url = selected[0].attribs.content;
-        }
-        let imageUrl = "";
-        selected = $('meta[property="og:image"]');
-        if(selected.length != 0) {
-            imageUrl = selected[0].attribs.content;
-        }
-        let desc = "";
-        selected = $('meta[property="og:description"]');
-        if(selected.length != 0) {
-            desc = selected[0].attribs.content;
-        }
-        
-        const page: WebPageInfo = {
-            siteId: this.siteInfo._id as string,
-            title: title,
-            url: url,
-            imageUrl: imageUrl,
-            desc: desc,
-            category: this.siteInfo.category,
-            time: moment().toDate(),
-            isRead: false
-        };
-
-        await this.core.insertPage(page);
+        await this.core.insertPage(info);
 
         this.siteInfo.lastUrl = pageUrl;
-    }
-
-    private relToAbs(url: string)
-    {
-        const absRegex = /^(?:[a-z]+:)?\/\//i;
-
-        if(absRegex.test(url) == true) {
-            return url;
-        } else {
-            const u = new URL(url, this.siteInfo.url);
-            return u.toString();
-        }
     }
 }

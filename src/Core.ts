@@ -1,36 +1,9 @@
-import request from "request";
 import fs from "fs";
-import rimraf from "rimraf";
 
+import { WebSiteInfo, WebPageInfo, requestRes, requestPromise, rimrafPromise } from "./Utility";
 import { DB } from "./DB";
-import { WebSiteWatcher, WebSiteWatcherInitializer, WebSiteInfo, WebPageInfo } from "./WebSiteWatcher";
+import { WebSiteWatcher, WebSiteWatcherInitializer } from "./WebSiteWatcher";
 import { Log } from "./Log";
-
-interface reqRes
-{
-    response: request.Response;
-    body: any;
-}
-function req(url: string, options?: request.CoreOptions): Promise<reqRes> {
-    return new Promise(function(resolve, reject) {
-        request(url, options, function(err, response, body) {
-            if(err) return reject(err);
-
-            const res: reqRes = { response, body };
-            resolve(res);
-        });
-    });
-}
-
-function rimrafPromise(path: string): Promise<void> {
-    return new Promise(function(resolve, reject) {
-        rimraf(path, function(e) {
-            if(e) return reject(e);
-
-            resolve();
-        });
-    });
-}
 
 // Function params
 interface UpdateWebSiteParams
@@ -160,16 +133,16 @@ export class Core
 
     async insertPage(info: WebPageInfo)
     {
-        const imagePromise = req(info.imageUrl, {encoding: "binary"});
+        const imagePromise = requestPromise(info.imageUrl, {encoding: "binary"});
         const dbPromise = DB.insertPage(info);
 
         const [imageRes, dbRes] = await Promise.all([imagePromise, dbPromise]);
         info._id = dbRes._id;
 
-        const newImagePath = await this.saveImage(info._id as string, imageRes);
+        const newImagePath = await this.saveImage(info._id, imageRes);
 
         await Promise.all([
-            DB.updatePage(info._id as string, { imageUrl: newImagePath }),
+            DB.updatePage(info._id, { imageUrl: newImagePath }),
             DB.updateWebSite(info.siteId, { lastUrl: info.url })
         ]);
 
@@ -194,25 +167,29 @@ export class Core
 
         newPath += fileName;
 
-        await Promise.all([
-            fs.promises.copyFile(info.imageUrl, newPath),
-            DB.updatePage(newInfoId, { imageUrl: newPath })
-        ]);
+        if(info.imageUrl != "") {
+            await Promise.all([
+                fs.promises.copyFile(info.imageUrl, newPath),
+                DB.updatePage(newInfoId, { imageUrl: newPath })
+            ]);
+        } else {
+            await DB.updatePage(newInfoId, { imageUrl: "" });
+        }
 
         Log.info(`Archieved the page.\n        id: ${info._id} / title: ${info.title}`);
     }
 
     async archieveNewPage(info: WebPageInfo)
     {
-        const imagePromise = req(info.imageUrl, {encoding: "binary"});
+        const imagePromise = requestPromise(info.imageUrl, {encoding: "binary"});
         const dbPromise = DB.archievePage(info);
 
         const [imageRes, dbRes] = await Promise.all([imagePromise, dbPromise]);
         info._id = dbRes._id;
 
-        const newImagePath = await this.saveImage(info._id as string, imageRes);
+        const newImagePath = await this.saveImage(info._id, imageRes);
 
-        await DB.updatePage(info._id as string, { imageUrl: newImagePath });
+        await DB.updatePage(info._id, { imageUrl: newImagePath });
 
         Log.info(`Archieved a new page.\n        id: ${info._id} / title: ${info.title}`);
     }
@@ -244,7 +221,7 @@ export class Core
         }
     }
 
-    private async saveImage(id: string, imageRes:reqRes)
+    private async saveImage(id: string, imageRes: requestRes)
     {
         const dataDirPath = `page_data/${id}/`;
         if(fs.existsSync("page_data") == false) {

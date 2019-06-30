@@ -9,67 +9,9 @@ import http2 from "http2";
 
 import fs from "fs";
 
-import moment from "moment";
-import request from "request";
-import cheerio from "cheerio"; 
-
+import { WebPageInfo, getPageInfo } from "./Utility";
 import { Log } from "./Log";
 import { Core } from "./Core";
-import { WebPageInfo } from "./WebSiteWatcher";
-
-function req(url: string, options?: request.CoreOptions): Promise<any> {
-    return new Promise(function(resolve, reject) {
-        request(url, options, function(err, response, body) {
-            if(err) return reject(err);
-
-            resolve(body);
-        });
-    });
-}
-
-// TODO: WebSiteWatcher에 있는 savePage와 거의 같음
-//       나중에 두개 합칠 예정
-async function getPageInfo(pageUrl: string)
-{
-    const res = await req(pageUrl);
-        
-    const $ = cheerio.load(res);
-    let selected: Cheerio;
-
-    let title = "";
-    selected = $('meta[property="og:title"]');
-    if(selected.length != 0) {
-        title = selected[0].attribs.content
-    }
-    let url = "";
-    selected = $('meta[property="og:url"]');
-    if(selected.length != 0) {
-        url = selected[0].attribs.content;
-    }
-    let imageUrl = "";
-    selected = $('meta[property="og:image"]');
-    if(selected.length != 0) {
-        imageUrl = selected[0].attribs.content;
-    }
-    let desc = "";
-    selected = $('meta[property="og:description"]');
-    if(selected.length != 0) {
-        desc = selected[0].attribs.content;
-    }
-    
-    const page: WebPageInfo = {
-        siteId: "",
-        title: title,
-        url: url,
-        imageUrl: imageUrl,
-        desc: desc,
-        category: "",
-        time: moment().toDate(),
-        isRead: false
-    };
-
-    return page;
-}
 
 export interface APIServerInitializer
 {
@@ -304,6 +246,7 @@ export class APIServer
 
         try {
             await this.core.insertWebSite({
+                _id: "",
                 title: params.title,
                 url: params.url,
                 crawlUrl: params.crawlUrl,
