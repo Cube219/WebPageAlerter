@@ -153,9 +153,9 @@ export class Core
         }
     }
 
-    async getPages(params: GetPagesParams)
+    async getPages(params: GetPagesParams, fromArchieved: boolean = false)
     {
-        return DB.getPages(params);
+        return DB.getPages(params, fromArchieved);
     }
 
     async insertPage(info: WebPageInfo)
@@ -163,46 +163,67 @@ export class Core
         const imagePromise = req(info.imageUrl, {encoding: "binary"});
         const dbPromise = DB.insertPage(info);
 
-        const [res, dbRes] = await Promise.all([imagePromise, dbPromise]);
+        const [imageRes, dbRes] = await Promise.all([imagePromise, dbPromise]);
         info._id = dbRes._id;
 
-        const dataDirPath = `page_data/${info._id}/`;
-        if(fs.existsSync("page_data") == false) {
-            await fs.promises.mkdir("page_data");
-        }
-        if(fs.existsSync(dataDirPath) == false) {
-            await fs.promises.mkdir(dataDirPath);
-        }
-        
-        let imagePath: string = "";
-        if(res.response.statusCode == 200) {
-            const fileExtension = info.imageUrl.match(/\.\w{3,4}($|\?)/i);
-            if(fileExtension) {
-                imagePath = dataDirPath + "image" + fileExtension[0];
-            } else {
-                imagePath = dataDirPath + "image";
-            }
-
-            await fs.promises.writeFile(imagePath, res.body, "binary");
-        }
+        const newImagePath = await this.saveImage(info._id as string, imageRes);
 
         await Promise.all([
-            DB.updatePage(info._id as string, { imageUrl: imagePath }),
+            DB.updatePage(info._id as string, { imageUrl: newImagePath }),
             DB.updateWebSite(info.siteId, { lastUrl: info.url })
         ]);
 
         Log.info(`Added a new page. (Site id: ${info.siteId})\n        id: ${info._id} / title: ${info.title}`);
     }
 
-    async deletePage(id: string, withData: boolean = true)
+    async archievePage(id: string)
     {
         const info = await DB.getPage(id);
+        const fileName = info.imageUrl.split('/').pop();
+        info.isRead = true;
 
+        const newInfoId = (await DB.archievePage(info))._id;
+
+        let newPath = `page_data/${newInfoId}/`;
+        if(fs.existsSync("page_data") == false) {
+            await fs.promises.mkdir("page_data");
+        }
+        if(fs.existsSync(newPath) == false) {
+            await fs.promises.mkdir(newPath);
+        }
+
+        newPath += fileName;
+
+        await Promise.all([
+            fs.promises.copyFile(info.imageUrl, newPath),
+            DB.updatePage(newInfoId, { imageUrl: newPath })
+        ]);
+
+        Log.info(`Archieved the page.\n        id: ${info._id} / title: ${info.title}`);
+    }
+
+    async archieveNewPage(info: WebPageInfo)
+    {
+        const imagePromise = req(info.imageUrl, {encoding: "binary"});
+        const dbPromise = DB.archievePage(info);
+
+        const [imageRes, dbRes] = await Promise.all([imagePromise, dbPromise]);
+        info._id = dbRes._id;
+
+        const newImagePath = await this.saveImage(info._id as string, imageRes);
+
+        await DB.updatePage(info._id as string, { imageUrl: newImagePath });
+
+        Log.info(`Archieved a new page.\n        id: ${info._id} / title: ${info.title}`);
+    }
+
+    async deletePage(id: string, withData: boolean = true)
+    {
         if(withData) {
             try {
-              await rimrafPromise(`page_data/${info._id}`);
+              await rimrafPromise(`page_data/${id}`);
             } catch(e) {
-                Log.warn(`Failed to delete the page data.\n        id: ${info._id}\n        ${e}`);
+                Log.warn(`Failed to delete the page data.\n        id: ${id}\n        ${e}`);
             }
         }
 
@@ -211,7 +232,7 @@ export class Core
         if(res == 0) {
             Log.warn(`Tried to delete the page '${id}', but could not find.`);
         } else {
-            Log.info(`Deleted the page.\n        id: ${info._id} / title: ${info.title}`);
+            Log.info(`Deleted the page.\n        id: ${id}`);
         }
     }
     
@@ -221,5 +242,31 @@ export class Core
         if(res == 0) {
             Log.warn(`Tried to read the page '${id}', but could not find.`);
         }
+    }
+
+    private async saveImage(id: string, imageRes:reqRes)
+    {
+        const dataDirPath = `page_data/${id}/`;
+        if(fs.existsSync("page_data") == false) {
+            await fs.promises.mkdir("page_data");
+        }
+        if(fs.existsSync(dataDirPath) == false) {
+            await fs.promises.mkdir(dataDirPath);
+        }
+        
+        const oldPath = imageRes.response.request.uri.href;
+        let imagePath: string = "";
+        if(imageRes.response.statusCode == 200) {
+            const fileExtension = oldPath.match(/\.\w{3,4}($|\?)/i);
+            if(fileExtension) {
+                imagePath = dataDirPath + "image" + fileExtension[0];
+            } else {
+                imagePath = dataDirPath + "image";
+            }
+
+            await fs.promises.writeFile(imagePath, imageRes.body, "binary");
+        }
+
+        return imagePath;
     }
 }

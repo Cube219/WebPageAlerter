@@ -49,6 +49,7 @@ interface ISavedWebPage extends mongoose.Document
     isRead: boolean;
 }
 const SavedWebPageModel = mongoose.model<ISavedWebPage>('saved_web_page', savedWebPage);
+const ArchievedWebPageModel = mongoose.model<ISavedWebPage>('archieved_web_page', savedWebPage);
 
 // Function params
 interface UpdateWebSiteParams
@@ -180,17 +181,23 @@ class DB
         return res.n;
     }
 
-    async getPages(params: GetPagesParams)
+    async getPages(params: GetPagesParams, fromArchieved: boolean = false)
     {
         let condition: any = {}
-        if(params.onlyUnread == true) {
+        // Archieved pages always be read
+        if(params.onlyUnread == true && fromArchieved == false) {
             condition["isRead"] = { $eq: false };
         }
         if(params.category) {
             condition["category"] = { $eq: params.category };
         }
 
-        const query = SavedWebPageModel.find(condition);
+        let query: mongoose.DocumentQuery<ISavedWebPage[], ISavedWebPage>;
+        if(fromArchieved == false) {
+            query = SavedWebPageModel.find(condition);
+        } else {
+            query = ArchievedWebPageModel.find(condition);
+        }
         if(params.startIndex) {
             query.skip(params.startIndex);
         }
@@ -219,10 +226,15 @@ class DB
         return res;
     }
 
-    async getPage(id: string)
+    async getPage(id: string, fromArchieved: boolean = false)
     {
-        const queryRes = await SavedWebPageModel.find({ _id: id });
-        
+        let queryRes: ISavedWebPage[];
+        if(fromArchieved == false) {
+            queryRes = await SavedWebPageModel.find({ _id: id });
+        } else {
+            queryRes = await ArchievedWebPageModel.find({ _id: id });
+        }
+
         const r = queryRes[0];
         const res: WebPageInfo = {
             _id: r._id,
@@ -254,26 +266,53 @@ class DB
         return doc.save();
     }
 
+    async archievePage(info: WebPageInfo)
+    {
+        const doc = new ArchievedWebPageModel({
+            siteId: info.siteId,
+            title: info.title,
+            url: info.url,
+            imageUrl: info.imageUrl,
+            desc: info.desc,
+            category: info.category,
+            time: info.time,
+            isRead: info.isRead
+        });
+        return doc.save();
+    }
+
     async deletePage(id: string)
     {
         const res = await SavedWebPageModel.deleteOne({ _id: id });
 
-        if(res.ok != 1) {
-            throw Error("Failed to delete the page in DB.");
+        if(res.ok == 1 && res.n && res.n > 0) {
+            return res.n;
+        }
+
+        const res2 = await ArchievedWebPageModel.deleteOne({ _id: id });
+
+        if(res2.ok == 1) {
+            return res.n;
         }
         
-        return res.n;
+        throw Error("Failed to delete the page in DB.");
     }
 
     async updatePage(id: string, params: UpdatePageParams)
     {
         const res = await SavedWebPageModel.updateOne({ _id: id }, { $set: params }, { omitUndefined: true });
 
-        if(res.ok != 1) {
-            throw Error("Failed to update the page in DB.");
+        if(res.ok == 1 && res.n > 0) {
+            return res.n;
         }
 
-        return res.n;
+        const res2 = await ArchievedWebPageModel.updateOne({ _id: id }, { $set: params }, { omitUndefined: true });
+
+        if(res2.ok == 1) {
+            return res2.n;
+        }
+
+        throw Error("Failed to update the page in DB.");
     }
 }
 
