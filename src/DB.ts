@@ -148,7 +148,8 @@ class DB
             crawlUrl: info.crawlUrl,
             cssSelector: info.cssSelector,
             lastUrl: info.lastUrl,
-            category: info.category
+            category: info.category,
+            checkingCycleSec: info.checkingCycleSec
         });
         return doc.save();
     }
