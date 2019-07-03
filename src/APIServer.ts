@@ -6,6 +6,7 @@ import koaStatic from "koa-static";
 
 import http from "http";
 import http2 from "http2";
+import jwt from "jsonwebtoken";
 
 import fs from "fs";
 
@@ -18,6 +19,9 @@ export interface APIServerInitializer
     port: number;
     keyPath: string;
     certPath: string;
+    password: string;
+    jwtSecretKey: string;
+    disableAuth?: boolean;
 }
 
 export class APIServer
@@ -26,6 +30,9 @@ export class APIServer
 
     private koaApp: koa;
     private port: number;
+    private password: string; // TODO: 해싱해서 보관하기
+    private jwtSecretKey: string;
+    private disableAuth: boolean;
 
     private httpServer: http.Server;
     private server: http2.Http2SecureServer;
@@ -33,6 +40,12 @@ export class APIServer
     constructor(init: APIServerInitializer)
     {
         this.port = init.port;
+        this.password = init.password;
+        this.jwtSecretKey = init.jwtSecretKey;
+        this.disableAuth = false;
+        if(init.disableAuth) {
+            this.disableAuth = init.disableAuth;
+        }
 
         this.koaApp = new koa();
         this.initKoa();
@@ -98,9 +111,20 @@ export class APIServer
 
         this.koaApp.use(koaBodyParser());
 
+        const authRouter = new koaRouter();
+        authRouter.post("/auth", this.auth.bind(this));
+        this.koaApp.use(authRouter.routes());
+        this.koaApp.use(authRouter.allowedMethods())
+
+        if(this.disableAuth == false) {
+            this.koaApp.use(this.authMiddleware.bind(this));
+        }
+
         this.koaApp.use(koaStatic("page_data"));
 
         const router = new koaRouter();
+
+        router.post("/auth/refresh", this.refreshAuth.bind(this))
         
         router.get("/pages", this.getPages.bind(this));
         router.get("/pages/archieved", this.getArchievedPages.bind(this));
@@ -118,7 +142,66 @@ export class APIServer
         this.koaApp.use(router.allowedMethods());
     }
 
+    private async authMiddleware(ctx: koa.ParameterizedContext, next: () => Promise<any>)
+    {
+        const token = ctx.headers["x-access-token"] as string;
+
+        if(!token) {
+            ctx.response.status = 401;
+            return;
+        }
+
+        try {
+            jwt.verify(token, this.jwtSecretKey);
+        } catch(e) {
+            if(e instanceof jwt.TokenExpiredError) {
+                ctx.response.status = 401;
+                ctx.body = "Token Expired";
+                return;
+            } else if(e instanceof jwt.JsonWebTokenError) {
+                ctx.response.status = 401;
+                ctx.body = "Token Error";
+                return;
+            } else {
+                throw e;
+            }
+        }
+        
+        await next();
+    }
+
     // Routing functions
+    private async auth(ctx: koa.ParameterizedContext, next: () => Promise<any>)
+    {
+        const params = ctx.request.body;
+
+        if(this.password !== params.password) {
+            ctx.response.status = 400;
+            return;
+        }
+
+        const token = jwt.sign({}, this.jwtSecretKey,
+            {
+                expiresIn: "10d",
+                issuer: "WebPageAlerter",
+            });
+
+        ctx.response.status = 200;
+        ctx.body =  { token: token };
+    }
+
+    private async refreshAuth(ctx: koa.ParameterizedContext, next: () => Promise<any>)
+    {
+        const token = jwt.sign({}, this.jwtSecretKey,
+            {
+                expiresIn: "10d",
+                issuer: "WebPageAlerter",
+            });
+
+        ctx.response.status = 200;
+        ctx.body = token;
+    }
+
     private async getPages(ctx: koa.ParameterizedContext, next: () => Promise<any>)
     {
         const params = ctx.query;
