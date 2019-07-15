@@ -109,7 +109,7 @@ export class APIServer
             }
         });
         this.koaApp.on("error", (err, ctx) => {
-            Log.error(`Error in ${ctx.request.method}:${ctx.request.url}\n        ${err.stack}`);
+            Log.error(`APIServer: Error in ${ctx.request.method}:${ctx.request.url}\n        ${err.stack}`);
         });
 
         this.koaApp.use(koaHelmet());

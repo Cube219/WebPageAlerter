@@ -63,7 +63,7 @@ export class Core
             watcher.run();
             this.watchers.push(watcher);
 
-            Log.info(`Inserted a web site.\n        id: ${info._id} / title: ${info.title} / url: ${info.url}`);
+            Log.info(`Core: Inserted a web site.\n        id: ${info._id} / title: ${info.title} / url: ${info.url}`);
 
             watcher.checkImmediately();
         } catch(e) {
@@ -82,14 +82,14 @@ export class Core
                 });
 
                 if(index == -1) {
-                    throw Error(`Cannot find deleted web site in the watchers.\n        Site id: ${id}`);
+                    throw Error(`Core: Cannot find deleted web site in the watchers.\n        Site id: ${id}`);
                 }
                 this.watchers[index].stop();
                 this.watchers.splice(index, 1);
 
-                Log.info(`Deleted the web site.\n        id: ${id}`);
+                Log.info(`Core: Deleted the web site.\n        id: ${id}`);
             } else {
-                Log.warn(`Tried to delete the page '${id}', but could not find.`);
+                Log.warn(`Core: Tried to delete the page '${id}', but could not find.`);
             }
         } catch(e) {
             throw e;
@@ -107,7 +107,7 @@ export class Core
                 });
 
                 if(index == -1) {
-                    throw Error(`Cannot find deleted web site in the watchers.\n        Site id: ${id}`);
+                    throw Error(`Core: Cannot find deleted web site in the watchers.\n        Site id: ${id}`);
                 }
                 this.watchers[index].stop();
                 this.watchers.splice(index, 1);
@@ -117,9 +117,9 @@ export class Core
                 watcher.run();
                 this.watchers.push(watcher);
 
-                Log.info(`Updated the web site.\n        id: ${id} / params: ${JSON.stringify(params)}`);
+                Log.info(`Core: Updated the web site.\n        id: ${id} / params: ${JSON.stringify(params)}`);
             } else {
-                Log.warn(`Tried to update the page '${id}', but could not find.`);
+                Log.warn(`Core: Tried to update the page '${id}', but could not find.`);
             }
         } catch(e) {
             throw e;
@@ -146,7 +146,7 @@ export class Core
             DB.updateWebSite(info.siteId, { lastUrl: info.url })
         ]);
 
-        Log.info(`Added a new page. (Site id: ${info.siteId})\n        id: ${info._id} / title: ${info.title}`);
+        Log.info(`Core: Added a new page. (Site id: ${info.siteId})\n        id: ${info._id} / title: ${info.title}`);
     }
 
     async archievePage(id: string)
@@ -176,7 +176,7 @@ export class Core
             await DB.updatePage(newInfoId, { imageUrl: "" });
         }
 
-        Log.info(`Archieved the page.\n        id: ${info._id} / title: ${info.title}`);
+        Log.info(`Core: Archieved the page.\n        id: ${info._id} / title: ${info.title}`);
     }
 
     async archieveNewPage(info: WebPageInfo)
@@ -191,7 +191,7 @@ export class Core
 
         await DB.updatePage(info._id, { imageUrl: newImagePath });
 
-        Log.info(`Archieved a new page.\n        id: ${info._id} / title: ${info.title}`);
+        Log.info(`Core: Archieved a new page.\n        id: ${info._id} / title: ${info.title}`);
     }
 
     async deletePage(id: string, withData: boolean = true)
@@ -200,16 +200,16 @@ export class Core
             try {
               await rimrafPromise(`page_data/${id}`);
             } catch(e) {
-                Log.warn(`Failed to delete the page data.\n        id: ${id}\n        ${e}`);
+                Log.warn(`Core: Failed to delete the page data.\n        id: ${id}\n        ${e}`);
             }
         }
 
         const res = await DB.deletePage(id);
 
         if(res == 0) {
-            Log.warn(`Tried to delete the page '${id}', but could not find.`);
+            Log.warn(`Core: Tried to delete the page '${id}', but could not find.`);
         } else {
-            Log.info(`Deleted the page.\n        id: ${id}`);
+            Log.info(`Core: Deleted the page.\n        id: ${id}`);
         }
     }
     
@@ -217,7 +217,7 @@ export class Core
     {
         const res = await DB.updatePage(id, { isRead: true });
         if(res == 0) {
-            Log.warn(`Tried to read the page '${id}', but could not find.`);
+            Log.warn(`Core: Tried to read the page '${id}', but could not find.`);
         }
     }
 
