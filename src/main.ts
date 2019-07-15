@@ -7,7 +7,8 @@ require("dotenv").config();
 
 initLog();
 
-Log.info("Starting WebPageAlerter...");
+var version = require('../package.json').version;
+Log.info(`Starting WebPageAlerter... (var: ${version})`);
 
 DB.init({
     url: process.env.DB_URL as string,
