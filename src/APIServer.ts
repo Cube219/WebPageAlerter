@@ -16,7 +16,7 @@ import { Core } from "./Core";
 
 export interface APIServerInitializer
 {
-    port: number;
+    port?: number;
     keyPath: string;
     certPath: string;
     password: string;
@@ -34,12 +34,16 @@ export class APIServer
     private jwtSecretKey: string;
     private disableAuth: boolean;
 
-    private httpServer: http.Server;
+    // private httpServer: http.Server;
     private server: http2.Http2SecureServer;
 
     constructor(init: APIServerInitializer)
     {
-        this.port = init.port;
+        if(init.port) {
+            this.port = init.port;
+        } else {
+            this.port = 443;
+        }
         this.password = init.password;
         this.jwtSecretKey = init.jwtSecretKey;
         this.disableAuth = false;
@@ -59,10 +63,10 @@ export class APIServer
         this.server = http2.createSecureServer(options, this.koaApp.callback());
 
         // Redirect from http to https
-        this.httpServer = http.createServer(function(req, res) {
-            res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
-            res.end();
-        });
+        // this.httpServer = http.createServer(function(req, res) {
+        //     res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
+        //     res.end();
+        // });
     }
 
     public async start(core: Core)
@@ -70,14 +74,20 @@ export class APIServer
         return new Promise((resolve, reject) => {
             this.core = core;
         
-            this.httpServer.listen(80, ()=> {
-                Log.info("Started http server for redirecting to https.");
+            // this.httpServer.listen(80, ()=> {
+            //     Log.info("Started http server for redirecting to https.");
 
-                this.server.listen(443, () => {
-                    Log.info("Started APIServer.");
+            //     this.server.listen(443, () => {
+            //         Log.info("Started APIServer.");
 
-                    resolve();
-                });
+            //         resolve();
+            //     });
+            // });
+
+            this.server.listen(this.port, () => {
+                Log.info(`Started APIServer. (port: ${this.port})`);
+
+                resolve();
             });
         });
     }
@@ -85,7 +95,7 @@ export class APIServer
     public stop()
     {
         this.server.close();
-        this.httpServer.close();
+        // this.httpServer.close();
     }
 
     private initKoa()

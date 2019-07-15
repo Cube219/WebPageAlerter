@@ -1,6 +1,5 @@
 import { DB } from "./DB";
 import { APIServer } from "./APIServer";
-// import { WebSiteInfo, WebSiteWatcher } from "./WebSiteWatcher"
 import { Core } from "./Core";
 import { initLog, Log } from "./Log";
 
@@ -17,7 +16,7 @@ DB.init({
 
 const core = new Core();
 const api = new APIServer({
-    port: 443,
+    port: parseInt(process.env.API_PORT as string),
     keyPath: process.env.API_SERVER_KEY_PATH as string,
     certPath: process.env.API_SERVER_CERT_PATH as string,
     password: process.env.API_SERVER_PASSWORD as string,
