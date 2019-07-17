@@ -1,4 +1,5 @@
 import koa from "koa";
+import koaCors from "@koa/cors";
 import koaRouter from "koa-router";
 import koaHelmet from "koa-helmet";
 import koaBodyParser from "koa-bodyparser";
@@ -118,6 +119,8 @@ export class APIServer
                 defaultSrc: ["'self'"]
             }
         }));
+
+        this.koaApp.use(koaCors());
 
         this.koaApp.use(koaBodyParser());
 
