@@ -24,6 +24,7 @@ WORKDIR /app/WebPageAlerter
 
 COPY --from=builder /usr/src/WebPageAlerter/build/dist dist
 COPY --from=builder /usr/src/WebPageAlerter/build/node_modules node_modules
+COPY package*.json ./
 
 EXPOSE 80 443
 
