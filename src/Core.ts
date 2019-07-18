@@ -133,13 +133,16 @@ export class Core
 
     async insertPage(info: WebPageInfo)
     {
-        const imagePromise = requestPromise(info.imageUrl, {encoding: "binary"});
-        const dbPromise = DB.insertPage(info);
-
-        const [imageRes, dbRes] = await Promise.all([imagePromise, dbPromise]);
+        const dbRes = await DB.insertPage(info);
         info._id = dbRes._id;
 
-        const newImagePath = await this.saveImage(info._id, imageRes);
+        let newImagePath:string;
+        try {
+            const imageRes = await requestPromise(info.imageUrl, {encoding: "binary"});
+            newImagePath = await this.saveImage(info._id, imageRes);
+        } catch (e) {
+            newImagePath = "";
+        }
 
         await Promise.all([
             DB.updatePage(info._id, { imageUrl: newImagePath }),
@@ -181,13 +184,16 @@ export class Core
 
     async archieveNewPage(info: WebPageInfo)
     {
-        const imagePromise = requestPromise(info.imageUrl, {encoding: "binary"});
-        const dbPromise = DB.archievePage(info);
-
-        const [imageRes, dbRes] = await Promise.all([imagePromise, dbPromise]);
+        const dbRes = await DB.insertPage(info);
         info._id = dbRes._id;
 
-        const newImagePath = await this.saveImage(info._id, imageRes);
+        let newImagePath:string;
+        try {
+            const imageRes = await requestPromise(info.imageUrl, {encoding: "binary"});
+            newImagePath = await this.saveImage(info._id, imageRes);
+        } catch (e) {
+            newImagePath = "";
+        }
 
         await DB.updatePage(info._id, { imageUrl: newImagePath });
 
