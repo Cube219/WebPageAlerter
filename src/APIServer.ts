@@ -4,6 +4,7 @@ import koaRouter from "koa-router";
 import koaHelmet from "koa-helmet";
 import koaBodyParser from "koa-bodyparser";
 import koaStatic from "koa-static";
+import koaMount from "koa-mount";
 
 import http from "http";
 import http2 from "http2";
@@ -125,7 +126,7 @@ export class APIServer
         this.koaApp.use(koaBodyParser());
 
         const authRouter = new koaRouter();
-        authRouter.post("/auth", this.auth.bind(this));
+        authRouter.post("/api/auth", this.auth.bind(this));
         this.koaApp.use(authRouter.routes());
         this.koaApp.use(authRouter.allowedMethods())
 
@@ -133,23 +134,23 @@ export class APIServer
             this.koaApp.use(this.authMiddleware.bind(this));
         }
 
-        this.koaApp.use(koaStatic("page_data"));
+        this.koaApp.use(koaMount("/page_data", koaStatic("page_data")));
 
         const router = new koaRouter();
 
-        router.post("/auth/refresh", this.refreshAuth.bind(this))
+        router.post("/api/auth/refresh", this.refreshAuth.bind(this))
         
-        router.get("/pages", this.getPages.bind(this));
-        router.get("/pages/archieved", this.getArchievedPages.bind(this));
-        router.delete("/page/:id", this.deletePage.bind(this));
-        router.put("/page/read/:id", this.markPageAsRead.bind(this));
-        router.post("/page/archieved", this.archieveNewPage.bind(this));
-        router.post("/page/archieved/:id", this.archievePage.bind(this));
+        router.get("/api/pages", this.getPages.bind(this));
+        router.get("/api/pages/archieved", this.getArchievedPages.bind(this));
+        router.delete("/api/page/:id", this.deletePage.bind(this));
+        router.put("/api/page/read/:id", this.markPageAsRead.bind(this));
+        router.post("/api/page/archieved", this.archieveNewPage.bind(this));
+        router.post("/api/page/archieved/:id", this.archievePage.bind(this));
 
-        router.get("/sites", this.getSites.bind(this));
-        router.post("/site", this.addSite.bind(this));
-        router.put("/site/:id", this.updateSite.bind(this));
-        router.delete("/site/:id", this.deleteSite.bind(this));
+        router.get("/api/sites", this.getSites.bind(this));
+        router.post("/api/site", this.addSite.bind(this));
+        router.put("/api/site/:id", this.updateSite.bind(this));
+        router.delete("/api/site/:id", this.deleteSite.bind(this));
 
         this.koaApp.use(router.routes());
         this.koaApp.use(router.allowedMethods());
