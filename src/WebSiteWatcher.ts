@@ -71,7 +71,7 @@ export class WebSiteWatcher
 
         // TODO: 검사 중에는 다 끝날때까지 대기
         this.checkNewPage().catch((e) => {
-            Log.error(`WebSiteWatcher: Failed to check a new page.\n        id: ${this.siteInfo._id}\n        ${e.stack}`);
+            Log.error(`WebSiteWatcher: Failed to check a new page.\n        Site id: ${this.siteInfo._id}(${this.siteInfo.title})\n        ${e.stack}`);
 
             this.isBusy = false;
         });
