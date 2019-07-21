@@ -72,6 +72,7 @@ interface GetPagesParams
     onlyUnread?: boolean;
     category?: string;
     startIndex?: number;
+    afterId?: string;
     count?: number;
 }
 
@@ -199,13 +200,15 @@ class DB
         } else {
             query = ArchievedWebPageModel.find(condition);
         }
-        if(params.startIndex) {
+        if(params.afterId) {
+            query.where("_id").lt(params.afterId);
+        } else if(params.startIndex) {
             query.skip(params.startIndex);
         }
         if(params.count) {
             query.limit(params.count);
         }
-        const queryRes = await query.sort({ time: -1 });
+        const queryRes = await query.sort({ _id: -1 });
 
         let res: WebPageInfo[] = [];
         for(let i in queryRes) {

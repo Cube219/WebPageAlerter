@@ -231,6 +231,7 @@ export class APIServer
                 onlyUnread: (params.onlyUnread == "true"),
                 category: params.category,
                 startIndex: startIndex,
+                afterId: params.afterId,
                 count: parseInt(params.count)
             });
 

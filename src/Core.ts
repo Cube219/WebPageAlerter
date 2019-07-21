@@ -19,6 +19,7 @@ interface GetPagesParams
     onlyUnread?: boolean;
     category?: string;
     startIndex?: number;
+    afterId?: string;
     count?: number;
 }
 
