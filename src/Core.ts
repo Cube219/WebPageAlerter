@@ -220,11 +220,18 @@ export class Core
         }
     }
     
-    async readPage(id: string)
+    async readPage(id: string, setUnread: boolean = false)
     {
-        const res = await DB.updatePage(id, { isRead: true });
-        if(res == 0) {
-            Log.warn(`Core: Tried to read the page '${id}', but could not find.`);
+        if(setUnread == false) {
+            const res = await DB.updatePage(id, { isRead: true });
+            if(res == 0) {
+                Log.warn(`Core: Tried to read the page '${id}', but could not find.`);
+            }
+        } else {
+            const res = await DB.updatePage(id, { isRead: false });
+            if(res == 0) {
+                Log.warn(`Core: Tried to unread the page '${id}', but could not find.`);
+            }
         }
     }
 

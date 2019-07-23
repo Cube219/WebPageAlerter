@@ -285,8 +285,14 @@ export class APIServer
 
     private async markPageAsRead(ctx: koa.ParameterizedContext, next: () => Promise<any>)
     {
+        const params = ctx.request.body;
+        let setUnread: boolean = false;
+        if(params.setUnread && params.setUnread == true) {
+            setUnread = true;
+        }
+
         try {
-            await this.core.readPage(ctx.params.id);
+            await this.core.readPage(ctx.params.id, setUnread);
 
             ctx.status = 204;
         } catch(e) {
