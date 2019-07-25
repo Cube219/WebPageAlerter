@@ -3,17 +3,19 @@ import { APIServer } from "./APIServer";
 import { Core } from "./Core";
 import { initLog, Log } from "./Log";
 
+// Pre-initialize-----------------------------------
+
 require("dotenv").config();
 
 initLog();
 
 var version = require('../package.json').version;
-Log.info(`Starting WebPageAlerter... (var: ${version})`);
+process.env.APP_VERSION = version;
 
-DB.init({
-    url: process.env.DB_URL as string,
-    port: parseInt(process.env.DB_PORT as string)
-});
+Log.info(`Starting WebPageAlerter... (v${version})`);
+console.log(process.env.APP_VERSION);
+
+// ------------------------------------------------
 
 const core = new Core();
 const api = new APIServer({
@@ -25,9 +27,23 @@ const api = new APIServer({
     disableAuth: true
 });
 
-core.init().then(r => {
-    core.start();
-    api.start(core).then(() => {
+// ------------------------------------------------
+
+const run = async () => {
+    try {
+        await DB.init({
+            url: process.env.DB_URL as string,
+            port: parseInt(process.env.DB_PORT as string)
+        });
+
+        await core.init();
+        core.start();
+
+        await api.start(core);
+
         Log.info("Successfully started WebPageAlerter.");
-    });
-});
+    } catch(e) {
+        Log.error(`main: ${e}`);
+    }
+};
+run();

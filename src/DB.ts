@@ -5,6 +5,15 @@ import { Log } from "./Log";
 mongoose.Promise = global.Promise;
 
 // Schemas
+const appInfo = new mongoose.Schema({
+    lastRunVersion: String
+});
+interface IAppInfo extends mongoose.Document
+{
+    lastRunVersion: string;
+}
+const AppInfoModel = mongoose.model<IAppInfo>('app_info', appInfo);
+
 const webSiteInfo = new mongoose.Schema({
     title: String,
     url: String,
@@ -88,9 +97,26 @@ class DB
     {
     }
 
-    init(init: DBInitializer)
+    async init(init: DBInitializer)
     {
-        mongoose.connect(`mongodb://${init.url}:${init.port}/web_page_alerter`, { useNewUrlParser: true });
+        await mongoose.connect(`mongodb://${init.url}:${init.port}/web_page_alerter`, { useNewUrlParser: true });
+
+        const appInfoRes = await AppInfoModel.findOne();
+        if(appInfoRes) {
+            process.env.APP_LAST_RUN_VERSION = appInfoRes.lastRunVersion;
+        } else {
+            process.env.APP_LAST_RUN_VERSION = "0.0.0";
+        }
+
+        const updateRes = await AppInfoModel.updateOne(
+            {},
+            { $set: { lastRunVersion: process.env.APP_VERSION } },
+            { upsert: true }
+        );
+        if(updateRes.ok != 1 || updateRes.n != 1) {
+            throw Error("Failed to update the run app version.");
+        }
+
         Log.info("Started DB.");
     }
 

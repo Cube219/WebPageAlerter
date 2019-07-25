@@ -109,3 +109,27 @@ export async function getPageInfo(pageUrl: string)
 
     return page;
 }
+
+let cachedMajorNum: Number = -1;
+let cachedMinorNum: Number;
+let cachedPatchNum: Number;
+export function isLessAppVersion(major: Number, minor: Number, patch: Number) {
+    if(cachedMajorNum == -1) {
+        const versionStrs = (process.env.APP_LAST_RUN_VERSION as string).split('.');
+        cachedMajorNum = parseInt(versionStrs[0]);
+        cachedMinorNum = parseInt(versionStrs[1]);
+        cachedPatchNum = parseInt(versionStrs[2]);
+    }
+
+    if(cachedMajorNum < major) {
+        return true;
+    }
+    if(cachedMinorNum < minor) {
+        return true;
+    }
+    if(cachedPatchNum < patch) {
+        return true;
+    }
+
+    return false;
+}
