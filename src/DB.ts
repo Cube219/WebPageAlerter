@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { WebSiteInfo, WebPageInfo } from "./Utility";
+import { WebSiteInfo, WebPageInfo, isLessAppVersion } from "./Utility";
 import { Log } from "./Log";
 
 mongoose.Promise = global.Promise;
@@ -43,7 +43,8 @@ const savedWebPage = new mongoose.Schema({
     desc: String,
     category: String,
     time: Date,
-    isRead: Boolean
+    isRead: Boolean,
+    isArchieved: Boolean
 });
 savedWebPage.index({ time: -1 });
 interface ISavedWebPage extends mongoose.Document
@@ -56,6 +57,7 @@ interface ISavedWebPage extends mongoose.Document
     category: string;
     time: Date;
     isRead: boolean;
+    isArchieved: boolean;
 }
 const SavedWebPageModel = mongoose.model<ISavedWebPage>('saved_web_page', savedWebPage);
 const ArchievedWebPageModel = mongoose.model<ISavedWebPage>('archieved_web_page', savedWebPage);
@@ -114,10 +116,27 @@ class DB
             { upsert: true }
         );
         if(updateRes.ok != 1 || updateRes.n != 1) {
-            throw Error("Failed to update the run app version.");
+            throw Error("Failed to update the last run app version.");
+        }
+
+        if(isLessAppVersion(0, 1, 6) == true) {
+            await this.updateVersion_0_1_6();
         }
 
         Log.info("Started DB.");
+    }
+
+    async updateVersion_0_1_6() {
+        // v0.1.6: Added isArchieved in savedWebPage schema
+        let res = await SavedWebPageModel.updateMany({}, { $set: { isArchieved: false } });
+        if(res.ok != 1) {
+            throw Error("Failed to update version to 0.1.6.");
+        }
+
+        res = await ArchievedWebPageModel.updateMany({}, { $set: { isArchieved: true } });
+        if(res.ok != 1) {
+            throw Error("Failed to update version to 0.1.6.");
+        }
     }
 
     shutdown()

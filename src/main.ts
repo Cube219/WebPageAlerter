@@ -13,7 +13,6 @@ var version = require('../package.json').version;
 process.env.APP_VERSION = version;
 
 Log.info(`Starting WebPageAlerter... (v${version})`);
-console.log(process.env.APP_VERSION);
 
 // ------------------------------------------------
 
