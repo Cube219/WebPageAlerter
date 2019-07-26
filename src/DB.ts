@@ -268,7 +268,8 @@ class DB
                 desc: r.desc,
                 category: r.category,
                 time: r.time,
-                isRead: r.isRead
+                isRead: r.isRead,
+                isArchieved: r.isArchieved
             };
         }
 
@@ -294,7 +295,8 @@ class DB
             desc: r.desc,
             category: r.category,
             time: r.time,
-            isRead: r.isRead
+            isRead: r.isRead,
+            isArchieved: r.isArchieved
         }
 
         return res;
@@ -310,7 +312,8 @@ class DB
             desc: info.desc,
             category: info.category,
             time: info.time,
-            isRead: info.isRead
+            isRead: info.isRead,
+            isArchieved: false
         });
         return doc.save();
     }
@@ -325,7 +328,8 @@ class DB
             desc: info.desc,
             category: info.category,
             time: info.time,
-            isRead: info.isRead
+            isRead: info.isRead,
+            isArchieved: true
         });
         return doc.save();
     }

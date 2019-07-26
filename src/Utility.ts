@@ -26,6 +26,7 @@ export interface WebPageInfo
     category: string;
     time: Date;
     isRead: boolean;
+    isArchieved: boolean;
 }
 
 export interface requestRes
@@ -104,7 +105,8 @@ export async function getPageInfo(pageUrl: string)
         desc: desc,
         category: "",
         time: moment().toDate(),
-        isRead: false
+        isRead: false,
+        isArchieved: false
     };
 
     return page;
