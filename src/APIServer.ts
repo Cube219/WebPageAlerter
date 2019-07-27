@@ -19,8 +19,11 @@ import { Core } from "./Core";
 export interface APIServerInitializer
 {
     port?: number;
-    keyPath: string;
-    certPath: string;
+
+    useHttp2?: boolean;
+    keyPath?: string;
+    certPath?: string;
+
     password: string;
     jwtSecretKey: string;
     disableAuth?: boolean;
@@ -36,15 +39,19 @@ export class APIServer
     private jwtSecretKey: string;
     private disableAuth: boolean;
 
-    // private httpServer: http.Server;
-    private server: http2.Http2SecureServer;
+    private http2Server!: http2.Http2SecureServer;
+    private httpServer!: http.Server;
 
     constructor(init: APIServerInitializer)
     {
         if(init.port) {
             this.port = init.port;
         } else {
-            this.port = 443;
+            if(init.useHttp2 == true) {
+                this.port = 443;
+            } else {
+                this.port = 80;
+            }
         }
         this.password = init.password;
         this.jwtSecretKey = init.jwtSecretKey;
@@ -56,19 +63,17 @@ export class APIServer
         this.koaApp = new koa();
         this.initKoa();
 
-        const options = {
-            key: fs.readFileSync(init.keyPath),
-            cert: fs.readFileSync(init.certPath),
-            allowHTTP1: true
+        if(init.useHttp2 == true) {
+            const options = {
+                key: fs.readFileSync(init.keyPath as string),
+                cert: fs.readFileSync(init.certPath as string),
+                allowHTTP1: true
+            };
+
+            this.http2Server = http2.createSecureServer(options, this.koaApp.callback());
+        } else {
+            this.httpServer = http.createServer(this.koaApp.callback());
         }
-
-        this.server = http2.createSecureServer(options, this.koaApp.callback());
-
-        // Redirect from http to https
-        // this.httpServer = http.createServer(function(req, res) {
-        //     res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
-        //     res.end();
-        // });
     }
 
     public async start(core: Core)
@@ -76,28 +81,30 @@ export class APIServer
         return new Promise((resolve, reject) => {
             this.core = core;
         
-            // this.httpServer.listen(80, ()=> {
-            //     Log.info("Started http server for redirecting to https.");
+            if(this.http2Server != null) {
+                this.http2Server.listen(this.port, () => {
+                    Log.info(`Started APIServer. (Protocol: http/2, Port: ${this.port})`);
 
-            //     this.server.listen(443, () => {
-            //         Log.info("Started APIServer.");
+                    resolve();
+                });
+            } else {
+                this.httpServer.listen(this.port, () => {
+                    Log.info(`Started APIServer. (Protocol: http, Port: ${this.port})`);
 
-            //         resolve();
-            //     });
-            // });
-
-            this.server.listen(this.port, () => {
-                Log.info(`Started APIServer. (port: ${this.port})`);
-
-                resolve();
-            });
+                    resolve();
+                });
+            }
         });
     }
 
     public stop()
     {
-        this.server.close();
-        // this.httpServer.close();
+        if(this.http2Server != null) {
+            this.http2Server.close();
+        }
+        if(this.httpServer != null) {
+            this.httpServer.close();
+        }
     }
 
     private initKoa()

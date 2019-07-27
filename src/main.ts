@@ -18,12 +18,13 @@ Log.info(`Starting WebPageAlerter... (v${version})`);
 
 const core = new Core();
 const api = new APIServer({
-    port: parseInt(process.env.API_PORT as string),
+    port: parseInt(process.env.API_SERVER_PORT as string),
+    useHttp2: (process.env.API_SERVER_USE_HTTP2  === 'true'),
     keyPath: process.env.API_SERVER_KEY_PATH as string,
     certPath: process.env.API_SERVER_CERT_PATH as string,
     password: process.env.API_SERVER_PASSWORD as string,
     jwtSecretKey: process.env.JWT_SIGNATURE_SECRET_KEY as string,
-    disableAuth: true
+    disableAuth: (process.env.API_SERVER_DISABLE_AUTH  === 'true')
 });
 
 // ------------------------------------------------
