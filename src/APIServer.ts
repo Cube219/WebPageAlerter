@@ -365,7 +365,8 @@ export class APIServer
                 cssSelector: params.cssSelector,
                 category: params.category,
                 lastUrl: "",
-                checkingCycleSec: params.checkingCycleSec
+                checkingCycleSec: params.checkingCycleSec,
+                isDisabled: false
             });
 
             ctx.status = 204;

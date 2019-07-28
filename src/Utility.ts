@@ -13,6 +13,7 @@ export interface WebSiteInfo
     lastUrl: string;
     category: string;
     checkingCycleSec: number;
+    isDisabled: boolean;
 }
 
 export interface WebPageInfo

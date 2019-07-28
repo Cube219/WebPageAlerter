@@ -21,7 +21,8 @@ const webSiteInfo = new mongoose.Schema({
     cssSelector: String,
     lastUrl: String,
     category: String,
-    checkingCycleSec: Number
+    checkingCycleSec: Number,
+    isDisabled: Boolean
 });
 interface IWebSiteInfo extends mongoose.Document
 {
@@ -32,6 +33,7 @@ interface IWebSiteInfo extends mongoose.Document
     lastUrl: string;
     category: string;
     checkingCycleSec: number;
+    isDisabled: boolean;
 }
 const WebSiteInfoModel = mongoose.model<IWebSiteInfo>('web_site_info', webSiteInfo);
 
@@ -70,6 +72,7 @@ interface UpdateWebSiteParams
     category?: string;
     lastUrl?: string;
     checkingCycleSec?: number;
+    isDisabled?: boolean;
 }
 
 interface UpdatePageParams
@@ -122,6 +125,9 @@ class DB
         if(isLessAppVersion(0, 1, 6) == true) {
             await this.updateVersion_0_1_6();
         }
+        if(isLessAppVersion(0, 1, 8) == true) {
+            await this.updateVersion_0_1_8();
+        }
 
         Log.info("Started DB.");
     }
@@ -138,6 +144,13 @@ class DB
             throw Error("Failed to update version to 0.1.6.");
         }
     }
+    async updateVersion_0_1_8() {
+        // v0.1.8: Added isDisabled in webSiteInfo schema
+        const res = await WebSiteInfoModel.updateMany({}, { $set: { isDisabled: false } });
+        if(res.ok != 1) {
+            throw Error("Failed to update version to 0.1.8.");
+        }
+    }
 
     shutdown()
     {
@@ -152,16 +165,7 @@ class DB
         for(let i in queryRes) {
             const r = queryRes[i];
             
-            res[i] = {
-                _id: r._id,
-                title: r.title,
-                url: r.url,
-                crawlUrl: r.crawlUrl,
-                cssSelector: r.cssSelector,
-                lastUrl: r.lastUrl,
-                category: r.category,
-                checkingCycleSec: r.checkingCycleSec
-            };
+            res[i] = r;
         }
 
         return res;
@@ -172,16 +176,7 @@ class DB
         const queryRes = await WebSiteInfoModel.find({ _id: id });
         
         const r = queryRes[0];
-        const res: WebSiteInfo = {
-            _id: r._id,
-            title: r.title,
-            url: r.url,
-            crawlUrl: r.crawlUrl,
-            cssSelector: r.cssSelector,
-            lastUrl: r.lastUrl,
-            category: r.category,
-            checkingCycleSec: r.checkingCycleSec
-        }
+        const res: WebSiteInfo = r;
 
         return res;
     }
@@ -195,7 +190,8 @@ class DB
             cssSelector: info.cssSelector,
             lastUrl: info.lastUrl,
             category: info.category,
-            checkingCycleSec: info.checkingCycleSec
+            checkingCycleSec: info.checkingCycleSec,
+            isDisabled: info.isDisabled
         });
         return doc.save();
     }
@@ -259,18 +255,7 @@ class DB
         for(let i in queryRes) {
             const r = queryRes[i];
 
-            res[i] = {
-                _id: r._id,
-                siteId: r.siteId,
-                title: r.title,
-                url: r.url,
-                imageUrl: r.imageUrl,
-                desc: r.desc,
-                category: r.category,
-                time: r.time,
-                isRead: r.isRead,
-                isArchieved: r.isArchieved
-            };
+            res[i] = r;
         }
 
         return res;
@@ -285,19 +270,7 @@ class DB
             queryRes = await ArchievedWebPageModel.find({ _id: id });
         }
 
-        const r = queryRes[0];
-        const res: WebPageInfo = {
-            _id: r._id,
-            siteId: r.siteId,
-            title: r.title,
-            url: r.url,
-            imageUrl: r.imageUrl,
-            desc: r.desc,
-            category: r.category,
-            time: r.time,
-            isRead: r.isRead,
-            isArchieved: r.isArchieved
-        }
+        const res: WebPageInfo = queryRes[0];
 
         return res;
     }

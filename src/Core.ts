@@ -12,6 +12,7 @@ interface UpdateWebSiteParams
     cssSelector?: string;
     category?: string;
     lastUrl?: string;
+    isDisabled?: boolean;
 }
 
 interface GetPagesParams
