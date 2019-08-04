@@ -20,7 +20,7 @@ export function initLog()
         filename: "logs/%DATE%-logs.log",
         datePattern: "YYYY-MM-DD",
         maxSize: "128k",
-        maxFiles: "30d",
+        // maxFiles: "30d",
         format: format
     });
 
