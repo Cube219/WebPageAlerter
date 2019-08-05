@@ -384,7 +384,9 @@ export class APIServer
             await this.core.updateWebSite(ctx.params.id, {
                 crawlUrl: params.crawlUrl,
                 cssSelector: params.cssSelector,
-                category: params.category
+                category: params.category,
+                checkingCycleSec: parseInt(params.checkingCycleSec),
+                isDisabled: (params.isDisabled == 'true')
             });
 
             ctx.status = 204;
