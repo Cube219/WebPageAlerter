@@ -39,6 +39,7 @@ const WebSiteInfoModel = mongoose.model<IWebSiteInfo>('web_site_info', webSiteIn
 
 const savedWebPage = new mongoose.Schema({
     siteId: String,
+    siteTitle: String,
     title: String,
     url: String,
     imageUrl: String,
@@ -52,6 +53,7 @@ savedWebPage.index({ time: -1 });
 interface ISavedWebPage extends mongoose.Document
 {
     siteId: string;
+    siteTitle: string;
     title: string;
     url: string;
     imageUrl: string;
@@ -128,6 +130,9 @@ class DB
         if(isLessAppVersion(0, 1, 8) == true) {
             await this.updateVersion_0_1_8();
         }
+        if(isLessAppVersion(0, 1, 10) == true) {
+            await this.updateVersion_0_1_10();
+        }
 
         Log.info("Started DB.");
     }
@@ -143,6 +148,8 @@ class DB
         if(res.ok != 1) {
             throw Error("Failed to update version to 0.1.6.");
         }
+
+        Log.info("DB: Updated version to 0.1.6 (Added isArchieved in savedWebPage schema)");
     }
     async updateVersion_0_1_8() {
         // v0.1.8: Added isDisabled in webSiteInfo schema
@@ -150,6 +157,46 @@ class DB
         if(res.ok != 1) {
             throw Error("Failed to update version to 0.1.8.");
         }
+
+        Log.info("DB: Updated version to 0.1.8 (Added isDisabled in webSiteInfo schema)");
+    }
+    async updateVersion_0_1_10() {
+        // v0.1.10: Added siteTitle in savedWebPage schema
+        const webSites: WebSiteInfo[] = await this.getWebSites();
+        const webPages: WebPageInfo[] = await this.getPages({}, false);
+        const archievedWebPages: WebPageInfo[] = await this.getPages({}, true);
+
+        const addSiteTitle = async (e: WebPageInfo) => {
+            const findSite = webSites.find((e2) => { return e2._id == e.siteId; });
+
+            let res;
+            if(findSite) {
+                res = await SavedWebPageModel.updateOne({ _id: e._id }, { $set: { siteTitle: findSite.title } });
+            } else {
+                res = await SavedWebPageModel.updateOne({ _id: e._id }, { $set: { siteTitle: "" } });
+            }
+            if(res.ok != 1) {
+                throw Error("Failed to update version to 0.1.10.");
+            }
+        };
+        const addSiteTitle_archieved = async (e: WebPageInfo) => {
+            const findSite = webSites.find((e2) => { return e2._id == e.siteId; });
+
+            let res;
+            if(findSite) {
+                res = await ArchievedWebPageModel.updateOne({ _id: e._id }, { $set: { siteTitle: findSite.title } });
+            } else {
+                res = await ArchievedWebPageModel.updateOne({ _id: e._id }, { $set: { siteTitle: "" } });
+            }
+            if(res.ok != 1) {
+                throw Error("Failed to update version to 0.1.10.");
+            }
+        };
+
+        await webPages.forEach(addSiteTitle);
+        await archievedWebPages.forEach(addSiteTitle_archieved);
+
+        Log.info("DB: Updated version to 0.1.10 (Added siteTitle in savedWebPage schema)");
     }
 
     shutdown()
@@ -183,16 +230,10 @@ class DB
 
     async insertWebSite(info: WebSiteInfo)
     {
-        const doc = new WebSiteInfoModel({
-            title: info.title,
-            url: info.url,
-            crawlUrl: info.crawlUrl,
-            cssSelector: info.cssSelector,
-            lastUrl: info.lastUrl,
-            category: info.category,
-            checkingCycleSec: info.checkingCycleSec,
-            isDisabled: info.isDisabled
-        });
+        const infoWithout_id: any = info;
+        infoWithout_id._id = undefined;
+
+        const doc = new WebSiteInfoModel(infoWithout_id);
         return doc.save();
     }
 
@@ -277,33 +318,21 @@ class DB
 
     async insertPage(info: WebPageInfo)
     {
-        const doc = new SavedWebPageModel({
-            siteId: info.siteId,
-            title: info.title,
-            url: info.url,
-            imageUrl: info.imageUrl,
-            desc: info.desc,
-            category: info.category,
-            time: info.time,
-            isRead: info.isRead,
-            isArchieved: false
-        });
+        info.isArchieved = false;
+        const infoWithout_id: any = info;
+        infoWithout_id._id = undefined;
+
+        const doc = new SavedWebPageModel(infoWithout_id);
         return doc.save();
     }
 
     async archievePage(info: WebPageInfo)
     {
-        const doc = new ArchievedWebPageModel({
-            siteId: info.siteId,
-            title: info.title,
-            url: info.url,
-            imageUrl: info.imageUrl,
-            desc: info.desc,
-            category: info.category,
-            time: info.time,
-            isRead: info.isRead,
-            isArchieved: true
-        });
+        info.isArchieved = true;
+        const infoWithout_id: any = info;
+        infoWithout_id._id = undefined;
+
+        const doc = new ArchievedWebPageModel(infoWithout_id);
         return doc.save();
     }
 

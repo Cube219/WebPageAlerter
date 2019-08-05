@@ -114,6 +114,7 @@ export class WebSiteWatcher
     {
         const info = await getPageInfo(pageUrl);
         info.siteId = this.siteInfo._id;
+        info.siteTitle = this.siteInfo.title;
         info.category = this.siteInfo.category;
 
         await this.core.insertPage(info);

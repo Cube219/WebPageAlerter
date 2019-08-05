@@ -20,6 +20,7 @@ export interface WebPageInfo
 {
     _id: string;
     siteId: string;
+    siteTitle: string;
     title: string;
     url: string;
     imageUrl: string;
@@ -100,6 +101,7 @@ export async function getPageInfo(pageUrl: string)
     const page: WebPageInfo = {
         _id: "",
         siteId: "",
+        siteTitle: "",
         title: title,
         url: url,
         imageUrl: imageUrl,
