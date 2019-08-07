@@ -145,7 +145,8 @@ export class APIServer
 
         const router = new koaRouter();
 
-        router.post("/api/auth/refresh", this.refreshAuth.bind(this))
+        router.get("/api/auth/check", this.checkAuth.bind(this));
+        router.post("/api/auth/refresh", this.refreshAuth.bind(this));
         
         router.get("/api/pages", this.getPages.bind(this));
         router.get("/api/pages/archieved", this.getArchievedPages.bind(this));
@@ -209,6 +210,11 @@ export class APIServer
 
         ctx.response.status = 200;
         ctx.body =  { token: token };
+    }
+
+    private async checkAuth(ctx: koa.ParameterizedContext, next: () => Promise<any>)
+    {
+        ctx.response.status = 200;
     }
 
     private async refreshAuth(ctx: koa.ParameterizedContext, next: () => Promise<any>)
