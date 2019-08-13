@@ -137,11 +137,11 @@ export class APIServer
         this.koaApp.use(authRouter.routes());
         this.koaApp.use(authRouter.allowedMethods())
 
+        this.koaApp.use(koaMount("/page_data", koaStatic("page_data")));
+
         if(this.disableAuth == false) {
             this.koaApp.use(this.authMiddleware.bind(this));
         }
-
-        this.koaApp.use(koaMount("/page_data", koaStatic("page_data")));
 
         const router = new koaRouter();
 
