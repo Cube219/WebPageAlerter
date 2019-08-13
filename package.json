@@ -1,6 +1,6 @@
 {
   "name": "web_page_alerter",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Web page alerter.",
   "main": "dist/main.js",
   "scripts": {
