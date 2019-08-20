@@ -391,7 +391,7 @@ export class APIServer
                 crawlUrl: params.crawlUrl,
                 cssSelector: params.cssSelector,
                 category: params.category,
-                checkingCycleSec: parseInt(params.checkingCycleSec),
+                checkingCycleSec: parseInt(params.checkingCycleSec) || undefined,
                 isDisabled: (params.isDisabled == 'true')
             });
 
