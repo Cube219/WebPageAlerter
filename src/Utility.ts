@@ -138,3 +138,13 @@ export function isLessAppVersion(major: Number, minor: Number, patch: Number) {
 
     return false;
 }
+
+export function parseBoolean(s: string): boolean | undefined {
+    if(s === 'true') {
+        return true;
+    } else if(s === 'false') {
+        return false;
+    } else {
+        return undefined;
+    }
+}

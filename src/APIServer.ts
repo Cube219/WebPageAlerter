@@ -12,7 +12,7 @@ import jwt from "jsonwebtoken";
 
 import fs from "fs";
 
-import { WebPageInfo, getPageInfo } from "./Utility";
+import { WebPageInfo, getPageInfo, parseBoolean } from "./Utility";
 import { Log } from "./Log";
 import { Core } from "./Core";
 
@@ -392,7 +392,7 @@ export class APIServer
                 cssSelector: params.cssSelector,
                 category: params.category,
                 checkingCycleSec: parseInt(params.checkingCycleSec) || undefined,
-                isDisabled: (params.isDisabled == 'true')
+                isDisabled: parseBoolean(params.isDisabled)
             });
 
             ctx.status = 204;
