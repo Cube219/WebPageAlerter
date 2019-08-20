@@ -329,7 +329,7 @@ class DB
     async archievePage(info: WebPageInfo)
     {
         info.isArchieved = true;
-        const infoWithout_id: any = info;
+        let infoWithout_id: any = JSON.parse(JSON.stringify(info));
         infoWithout_id._id = undefined;
 
         const doc = new ArchievedWebPageModel(infoWithout_id);
