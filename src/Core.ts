@@ -158,22 +158,23 @@ export class Core
     async archievePage(id: string)
     {
         const info = await DB.getPage(id);
-        const fileName = info.imageUrl.split('/').pop();
         info.isRead = true;
 
         const newInfoId = (await DB.archievePage(info))._id;
 
-        let newPath = `page_data/${newInfoId}/`;
-        if(fs.existsSync("page_data") == false) {
-            await fs.promises.mkdir("page_data");
-        }
-        if(fs.existsSync(newPath) == false) {
-            await fs.promises.mkdir(newPath);
-        }
-
-        newPath += fileName;
-
         if(info.imageUrl != "") {
+            const fileName = info.imageUrl.split('/').pop();
+
+            let newPath = `page_data/${newInfoId}/`;
+            if(fs.existsSync("page_data") == false) {
+                await fs.promises.mkdir("page_data");
+            }
+            if(fs.existsSync(newPath) == false) {
+                await fs.promises.mkdir(newPath);
+            }
+
+            newPath += fileName;
+
             await Promise.all([
                 fs.promises.copyFile(info.imageUrl, newPath),
                 DB.updatePage(newInfoId, { imageUrl: newPath })
