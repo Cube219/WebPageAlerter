@@ -15,6 +15,7 @@ import fs from "fs";
 import { WebPageInfo, getPageInfo, parseBoolean } from "./Utility";
 import { Log } from "./Log";
 import { Core } from "./Core";
+import { WPAError } from "./Errors";
 
 export interface APIServerInitializer
 {
@@ -113,7 +114,12 @@ export class APIServer
             try {
                 await next();
             } catch (err) {
-                ctx.status = 500;
+                if(err instanceof WPAError) {
+                    ctx.status = err.statusCode;
+                    ctx.body = err.responseMessage;
+                } else {
+                    ctx.status = 500;
+                }
                 ctx.app.emit("error", err, ctx);
             }
         });
@@ -178,11 +184,11 @@ export class APIServer
         } catch(e) {
             if(e instanceof jwt.TokenExpiredError) {
                 ctx.response.status = 401;
-                ctx.body = "Token Expired";
+                ctx.body = "Token expired";
                 return;
             } else if(e instanceof jwt.JsonWebTokenError) {
                 ctx.response.status = 401;
-                ctx.body = "Token Error";
+                ctx.body = "Token error";
                 return;
             } else {
                 throw e;
@@ -397,7 +403,7 @@ export class APIServer
 
             ctx.status = 204;
         } catch(e) {
-            e.message += `${e}\n        Web site id: ${ctx.params.id}\n    Request parameters: ${JSON.stringify(params)}`
+            e.message += `\n        Request parameters: ${JSON.stringify(params)}`
             throw e;
         }
     }
@@ -411,7 +417,7 @@ export class APIServer
 
             ctx.status = 204;
         } catch(e) {
-            e.message += `${e}\n        Web site id: ${ctx.params.id}\n    Request parameters: ${JSON.stringify(params)}`;
+            e.message += `\n        Request parameters: ${JSON.stringify(params)}`;
             throw e;
         }
     }

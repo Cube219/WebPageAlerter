@@ -4,6 +4,7 @@ import { WebSiteInfo, WebPageInfo, requestRes, requestPromise, rimrafPromise } f
 import { DB } from "./DB";
 import { WebSiteWatcher, WebSiteWatcherInitializer } from "./WebSiteWatcher";
 import { Log } from "./Log";
+import { SiteNotFoundError } from "./Errors";
 
 // Function params
 interface UpdateWebSiteParams
@@ -92,7 +93,7 @@ export class Core
 
                 Log.info(`Core: Deleted the web site.\n        id: ${id}`);
             } else {
-                Log.warn(`Core: Tried to delete the page '${id}', but could not find.`);
+                throw new SiteNotFoundError(id);
             }
         } catch(e) {
             throw e;
@@ -122,7 +123,7 @@ export class Core
 
                 Log.info(`Core: Updated the web site.\n        id: ${id} / params: ${JSON.stringify(params)}`);
             } else {
-                Log.warn(`Core: Tried to update the page '${id}', but could not find.`);
+                throw new SiteNotFoundError(id);
             }
         } catch(e) {
             throw e;
