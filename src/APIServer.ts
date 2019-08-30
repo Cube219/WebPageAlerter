@@ -297,7 +297,7 @@ export class APIServer
 
             ctx.status = 204;
         } catch(e) {
-            e.message += `${e}\n        Page id: ${ctx.params.id}`;
+            e.message += `\n        Page id: ${ctx.params.id}`;
             throw e;
         }
     }
@@ -315,7 +315,7 @@ export class APIServer
 
             ctx.status = 204;
         } catch(e) {
-            e.message += `${e}\n        Page id: ${ctx.params.id}`;
+            e.message += `\n        Page id: ${ctx.params.id}`;
             throw e;
         }
     }
@@ -333,7 +333,7 @@ export class APIServer
 
             ctx.status = 204;
         } catch(e) {
-            e.message += `${e}\n        Request parameters: ${JSON.stringify(params)}`;
+            e.message += `\n        Request parameters: ${JSON.stringify(params)}`;
             throw e;
         }
     }
@@ -383,7 +383,7 @@ export class APIServer
 
             ctx.status = 204;
         } catch(e) {
-            e.message += `${e}\n        Request parameters: ${JSON.stringify(params)}`;
+            e.message += `\n        Request parameters: ${JSON.stringify(params)}`;
             throw e;
         }
     }
