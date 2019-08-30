@@ -4,7 +4,7 @@ import { WebSiteInfo, WebPageInfo, requestRes, requestPromise, rimrafPromise } f
 import { DB } from "./DB";
 import { WebSiteWatcher, WebSiteWatcherInitializer } from "./WebSiteWatcher";
 import { Log } from "./Log";
-import { SiteNotFoundError } from "./Errors";
+import { SiteNotFoundError, PageNotFoundError } from "./Errors";
 
 // Function params
 interface UpdateWebSiteParams
@@ -159,6 +159,10 @@ export class Core
     async archievePage(id: string)
     {
         const info = await DB.getPage(id);
+        if(info == undefined) {
+            throw new PageNotFoundError(id);
+        }
+
         info.isRead = true;
 
         const newInfoId = (await DB.archievePage(info))._id;
@@ -218,7 +222,7 @@ export class Core
         const res = await DB.deletePage(id);
 
         if(res == 0) {
-            Log.warn(`Core: Tried to delete the page '${id}', but could not find.`);
+            throw new PageNotFoundError(id);
         } else {
             Log.info(`Core: Deleted the page.\n        id: ${id}`);
         }
@@ -229,12 +233,12 @@ export class Core
         if(setUnread == false) {
             const res = await DB.updatePage(id, { isRead: true });
             if(res == 0) {
-                Log.warn(`Core: Tried to read the page '${id}', but could not find.`);
+                throw new PageNotFoundError(id);
             }
         } else {
             const res = await DB.updatePage(id, { isRead: false });
             if(res == 0) {
-                Log.warn(`Core: Tried to unread the page '${id}', but could not find.`);
+                throw new PageNotFoundError(id);
             }
         }
     }

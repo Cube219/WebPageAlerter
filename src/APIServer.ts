@@ -315,7 +315,7 @@ export class APIServer
 
             ctx.status = 204;
         } catch(e) {
-            e.message += `${e}\n        Page id: ${ctx.parmas.id}`;
+            e.message += `${e}\n        Page id: ${ctx.params.id}`;
             throw e;
         }
     }
