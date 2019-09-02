@@ -22,15 +22,15 @@ export class SiteNotFoundError extends WPAError {
     }
 }
 
-export class InvalidSiteCrawlUrlError extends WPAError {
-    crawlUrl: string;
+export class InvalidUrlError extends WPAError {
+    url: string;
 
-    constructor(crawlUrl: string) {
-        super('Invalid site crawl url', 400);
-        this.name = 'InvalidSiteCrawlUrlError';
-        Object.setPrototypeOf(this, InvalidSiteCrawlUrlError.prototype);
+    constructor(url: string) {
+        super('Invalid url', 400);
+        this.name = 'InvalidlUrlError';
+        Object.setPrototypeOf(this, InvalidUrlError.prototype);
 
-        this.crawlUrl = crawlUrl;
+        this.url = url;
     }
 }
 
@@ -55,18 +55,6 @@ export class PageNotFoundError extends WPAError {
         Object.setPrototypeOf(this, PageNotFoundError.prototype);
 
         this.id = id;
-    }
-}
-
-export class InvalidPageUrlError extends WPAError {
-    url: string;
-
-    constructor(url: string) {
-        super(`Invalid page url`, 400);
-        this.name = 'InvalidPageUrlError';
-        Object.setPrototypeOf(this, InvalidPageUrlError.prototype);
-
-        this.url = url;
     }
 }
 

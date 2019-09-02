@@ -324,11 +324,11 @@ export class APIServer
     {
         const params = ctx.request.body;
 
-        const info: WebPageInfo = await getPageInfo(params.url);
-        info.category = params.category;
-        info.isRead = true;
-
         try {
+            const info: WebPageInfo = await getPageInfo(params.url);
+            info.category = params.category;
+            info.isRead = true;
+
             await this.core.archieveNewPage(info);
 
             ctx.status = 204;

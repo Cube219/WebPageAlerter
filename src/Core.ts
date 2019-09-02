@@ -1,10 +1,12 @@
 import fs from "fs";
+import rq from "request-promise-native";
+import cheerio from "cheerio";
 
-import { WebSiteInfo, WebPageInfo, requestRes, requestPromise, rimrafPromise } from "./Utility";
+import { WebSiteInfo, WebPageInfo, rimrafPromise, relToAbsUrl, getPageInfo } from "./Utility";
 import { DB } from "./DB";
 import { WebSiteWatcher, WebSiteWatcherInitializer } from "./WebSiteWatcher";
 import { Log } from "./Log";
-import { SiteNotFoundError, PageNotFoundError } from "./Errors";
+import { SiteNotFoundError, PageNotFoundError, InvalidUrlError, InvalidCssSelectorError } from "./Errors";
 
 // Function params
 interface UpdateWebSiteParams
@@ -60,6 +62,8 @@ export class Core
     async insertWebSite(info: WebSiteInfo)
     {
         try {
+            await this.verifySite(info);
+
             const resId = (await DB.insertWebSite(info))._id;
             info._id = resId;
 
@@ -142,8 +146,8 @@ export class Core
 
         let newImagePath:string;
         try {
-            const imageRes = await requestPromise(info.imageUrl, {encoding: "binary"});
-            newImagePath = await this.saveImage(info._id, imageRes);
+            const imageData = await rq(info.imageUrl, {encoding: "binary"});
+            newImagePath = await this.saveImage(info._id, info.imageUrl, imageData);
         } catch (e) {
             newImagePath = "";
         }
@@ -198,8 +202,8 @@ export class Core
 
         let newImagePath:string;
         try {
-            const imageRes = await requestPromise(info.imageUrl, {encoding: "binary"});
-            newImagePath = await this.saveImage(info._id, imageRes);
+            const imageData = await rq(info.imageUrl, {encoding: "binary"});
+            newImagePath = await this.saveImage(info._id, info.imageUrl, imageData);
         } catch (e) {
             newImagePath = "";
         }
@@ -243,7 +247,32 @@ export class Core
         }
     }
 
-    private async saveImage(id: string, imageRes: requestRes)
+    private async verifySite(info: WebSiteInfo)
+    {
+        let res: any;
+        try {
+            res = await rq(info.crawlUrl);
+        } catch(e) {
+            let err = new InvalidUrlError(info.crawlUrl);
+            err.message = e.message;
+
+            throw err;
+        }
+
+        try {
+            const $ = cheerio.load(res);
+            const aElement = $(info.cssSelector)[0];
+
+            const pageUrl = relToAbsUrl(aElement.attribs.href, info.url);
+        } catch(e) {
+            let err = new InvalidCssSelectorError(info.cssSelector);
+            err.message = e.message;
+
+            throw err;
+        }
+    }
+
+    private async saveImage(id: string, oldPath: string, imageData: any)
     {
         const dataDirPath = `page_data/${id}/`;
         if(fs.existsSync("page_data") == false) {
@@ -253,18 +282,15 @@ export class Core
             await fs.promises.mkdir(dataDirPath);
         }
         
-        const oldPath = imageRes.response.request.uri.href;
         let imagePath: string = "";
-        if(imageRes.response.statusCode == 200) {
-            const fileExtension = oldPath.match(/\.\w{3,4}($|\?)/i);
-            if(fileExtension) {
-                imagePath = dataDirPath + "image" + fileExtension[0];
-            } else {
-                imagePath = dataDirPath + "image";
-            }
-
-            await fs.promises.writeFile(imagePath, imageRes.body, "binary");
+        const fileExtension = oldPath.match(/\.\w{3,4}($|\?)/i);
+        if(fileExtension) {
+            imagePath = dataDirPath + "image" + fileExtension[0];
+        } else {
+            imagePath = dataDirPath + "image";
         }
+
+        await fs.promises.writeFile(imagePath, imageData, "binary");
 
         return imagePath;
     }

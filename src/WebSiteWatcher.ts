@@ -1,9 +1,11 @@
 import cheerio from "cheerio";
+import rq from "request-promise-native";
 
-import { WebSiteInfo, requestPromise, relToAbsUrl, getPageInfo } from "./Utility";
+import { WebSiteInfo, relToAbsUrl, getPageInfo } from "./Utility";
 import { Core } from "./Core";
 import { Log } from "./Log";
 import { DB } from "./DB";
+import { InvalidCssSelectorError, InvalidUrlError } from "./Errors";
 
 export interface WebSiteWatcherInitializer
 {
@@ -96,15 +98,30 @@ export class WebSiteWatcher
     {
         this.isBusy = true;
 
-        const res = await requestPromise(this.siteInfo.crawlUrl);
+        let res: any;
+        try {
+            res = await rq(this.siteInfo.crawlUrl);
+        } catch(e) {
+            let err = new InvalidUrlError(this.siteInfo.crawlUrl);
+            err.message = e.message;
 
-        const $ = cheerio.load(res.body);
-        const aElement = $(this.siteInfo.cssSelector)[0];
+            throw err;
+        }
 
-        const pageUrl = relToAbsUrl(aElement.attribs.href, this.siteInfo.url);
-        
-        if(this.siteInfo.lastUrl != pageUrl) {
-            await this.savePage(pageUrl);
+        try {
+            const $ = cheerio.load(res);
+            const aElement = $(this.siteInfo.cssSelector)[0];
+
+            const pageUrl = relToAbsUrl(aElement.attribs.href, this.siteInfo.url);
+
+            if(this.siteInfo.lastUrl != pageUrl) {
+                await this.savePage(pageUrl);
+            }
+        } catch(e) {
+            let err = new InvalidCssSelectorError(this.siteInfo.cssSelector);
+            err.message = e.message;
+
+            throw err;
         }
 
         this.isBusy = false;

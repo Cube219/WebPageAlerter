@@ -1,7 +1,8 @@
-import request from "request";
 import rimraf from "rimraf";
 import cheerio from "cheerio"; 
 import moment from "moment";
+import rq from "request-promise-native";
+import { InvalidUrlError } from "./Errors";
 
 export interface WebSiteInfo
 {
@@ -31,22 +32,22 @@ export interface WebPageInfo
     isArchieved: boolean;
 }
 
-export interface requestRes
-{
-    response: request.Response;
-    body: any;
-}
+// export interface requestRes
+// {
+//     response: request.Response;
+//     body: any;
+// }
 
-export function requestPromise(url: string, options?: request.CoreOptions): Promise<requestRes> {
-    return new Promise(function(resolve, reject) {
-        request(url, options, function(err, response, body) {
-            if(err) return reject(err);
+// export function requestPromise(url: string, options?: request.CoreOptions): Promise<requestRes> {
+//     return new Promise(function(resolve, reject) {
+//         request(url, options, function(err, response, body) {
+//             if(err) return reject(err);
 
-            const res: requestRes = { response, body };
-            resolve(res);
-        });
-    });
-}
+//             const res: requestRes = { response, body };
+//             resolve(res);
+//         });
+//     });
+// }
 
 export function rimrafPromise(path: string): Promise<void> {
     return new Promise(function(resolve, reject) {
@@ -72,9 +73,18 @@ export function relToAbsUrl(url: string, baseUrl: string)
 
 export async function getPageInfo(pageUrl: string)
 {
-    const res = await requestPromise(pageUrl);
-    
-    const $ = cheerio.load(res.body);
+    let res: any;
+
+    try {
+        res = await rq(pageUrl);
+    } catch(e) {
+        let err = new InvalidUrlError(pageUrl);
+        err.message = e.message;
+
+        throw err;
+    }
+
+    const $ = cheerio.load(res);
     let selected: Cheerio;
 
     let title = "";
