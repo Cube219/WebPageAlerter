@@ -15,7 +15,7 @@ import fs from "fs";
 import { WebPageInfo, getPageInfo, parseBoolean } from "./Utility";
 import { Log } from "./Log";
 import { Core } from "./Core";
-import { WPAError } from "./Errors";
+import { WPAError, MissingRequiredParametersError } from "./Errors";
 
 export interface APIServerInitializer
 {
@@ -203,6 +203,10 @@ export class APIServer
     {
         const params = ctx.request.body;
 
+        if(!params.password) {
+            throw new MissingRequiredParametersError(['password']);;
+        }
+
         if(this.password !== params.password) {
             ctx.response.status = 400;
             return;
@@ -324,6 +328,17 @@ export class APIServer
     {
         const params = ctx.request.body;
 
+        let notExistedParams: string[] = [];
+        if(!params.url) {
+            notExistedParams.push('url');
+        }
+        if(!params.category) {
+            notExistedParams.push('category');
+        }
+        if(notExistedParams.length > 0) {
+            throw new MissingRequiredParametersError(notExistedParams);
+        }
+
         try {
             const info: WebPageInfo = await getPageInfo(params.url);
             info.category = params.category;
@@ -357,10 +372,23 @@ export class APIServer
     {
         const params = ctx.request.body;
 
-        if(!params.title || !params.url || !params.crawlUrl || !params.cssSelector) {
-            ctx.status = 400;
-            return;
+        let notExistedParams: string[] = [];
+        if(!params.title) {
+            notExistedParams.push('title');
         }
+        if(!params.url) {
+            notExistedParams.push('url');
+        }
+        if(!params.crawlUrl) {
+            notExistedParams.push('crawlUrl');
+        }
+        if(!params.cssSelector) {
+            notExistedParams.push('cssSelector');
+        }
+        if(notExistedParams.length > 0) {
+            throw new MissingRequiredParametersError(notExistedParams);
+        }
+
         if(!params.category) {
             params.category = "general";
         }
