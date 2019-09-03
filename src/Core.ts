@@ -197,7 +197,7 @@ export class Core
 
     async archieveNewPage(info: WebPageInfo)
     {
-        const dbRes = await DB.insertPage(info);
+        const dbRes = await DB.archievePage(info);
         info._id = dbRes._id;
 
         let newImagePath:string;

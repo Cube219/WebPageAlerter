@@ -346,7 +346,8 @@ export class APIServer
 
             await this.core.archieveNewPage(info);
 
-            ctx.status = 204;
+            ctx.status = 200;
+            ctx.body = info;
         } catch(e) {
             e.message += `\n        Request parameters: ${JSON.stringify(params)}`;
             throw e;
