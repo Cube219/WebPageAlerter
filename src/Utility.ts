@@ -139,11 +139,22 @@ export function isLessAppVersion(major: Number, minor: Number, patch: Number) {
     if(cachedMajorNum < major) {
         return true;
     }
+    if(cachedMajorNum > major) {
+        return false;
+    }
+
     if(cachedMinorNum < minor) {
         return true;
     }
+    if(cachedMinorNum > minor) {
+        return false;
+    }
+
     if(cachedPatchNum < patch) {
         return true;
+    }
+    if(cachedPatchNum > patch) {
+        return false;
     }
 
     return false;
