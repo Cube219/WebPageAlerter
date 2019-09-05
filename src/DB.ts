@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { WebSiteInfo, WebPageInfo, isLessAppVersion } from "./Utility";
 import { Log } from "./Log";
+import { CategoryNotFoundError, AlreadyExistedError } from "./Errors";
 
 mongoose.Promise = global.Promise;
 
@@ -65,6 +66,15 @@ interface ISavedWebPage extends mongoose.Document
 }
 const SavedWebPageModel = mongoose.model<ISavedWebPage>('saved_web_page', savedWebPage);
 const ArchievedWebPageModel = mongoose.model<ISavedWebPage>('archieved_web_page', savedWebPage);
+
+const categoryInfo = new mongoose.Schema({
+    name: String
+});
+interface ICategoryInfo extends mongoose.Document
+{
+    name: string;
+}
+const CategoryInfoModel = mongoose.model<ICategoryInfo>('category_info', categoryInfo);
 
 // Function params
 interface UpdateWebSiteParams
@@ -368,6 +378,53 @@ class DB
         }
 
         throw Error("Failed to update the page in DB.");
+    }
+
+    async getCategory(name: string)
+    {
+        const queryRes = await CategoryInfoModel.findOne({ name: name });
+
+        if(queryRes == null) {
+            return null;
+        } else {
+            return queryRes.name;
+        }
+    }
+
+    async getCategoriesWithSub(name: string)
+    {
+        // TODO: name 오름차순으로 출력
+
+        const queryRes = await CategoryInfoModel.find({ name: /${name}.*/ });
+
+        let res: string[] = [];
+        for(var i in queryRes) {
+            res.push(queryRes[i].name);
+        }
+
+        return res;
+    }
+
+    async insertCategory(name: string)
+    {
+        const queryRes = await CategoryInfoModel.findOne({ name: name });
+        if(queryRes != null) {
+            throw new AlreadyExistedError(name);
+        }
+
+        const doc = new CategoryInfoModel({ name: name });
+        return doc.save();
+    }
+
+    async deleteCategory(name: string)
+    {
+        const res = await CategoryInfoModel.deleteOne({ name: name });
+
+        if(res.ok == 1) {
+            return res.n;
+        }
+
+        throw Error("Failed to delete the category in DB.");
     }
 }
 

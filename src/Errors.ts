@@ -58,6 +58,30 @@ export class PageNotFoundError extends WPAError {
     }
 }
 
+export class CategoryNotFoundError extends WPAError {
+    categoryName: string;
+
+    constructor(categoryName: string) {
+        super(`Category not found (name: ${categoryName})`, 404);
+        this.name = 'CategoryNotFoundError';
+        Object.setPrototypeOf(this, CategoryNotFoundError.prototype);
+
+        this.categoryName = categoryName;
+    }
+}
+
+export class AlreadyExistedError extends WPAError {
+    existedName: string;
+
+    constructor(existedName: string) {
+        super(`Already existed (name: ${existedName})`, 400);
+        this.name = 'AlreadyExistedError';
+        Object.setPrototypeOf(this, AlreadyExistedError.prototype);
+
+        this.existedName = existedName;
+    }
+}
+
 export class MissingRequiredParametersError extends WPAError {
     missingParams: string[];
 

@@ -166,6 +166,10 @@ export class APIServer
         router.put("/api/site/:id", this.updateSite.bind(this));
         router.delete("/api/site/:id", this.deleteSite.bind(this));
 
+        router.get("/api/category", this.getCategories.bind(this));
+        router.post("/api/category", this.addCategory.bind(this));
+        router.delete("/api/category", this.deleteCategory.bind(this));
+
         this.koaApp.use(router.routes());
         this.koaApp.use(router.allowedMethods());
     }
@@ -443,6 +447,67 @@ export class APIServer
         
         try {
             await this.core.deleteWebSite(ctx.params.id, (params.deleteAllPages == "true"));
+
+            ctx.status = 204;
+        } catch(e) {
+            e.message += `\n        Request parameters: ${JSON.stringify(params)}`;
+            throw e;
+        }
+    }
+
+    private async getCategories(ctx: koa.ParameterizedContext, next: () => Promise<any>)
+    {
+        const params = ctx.query;
+
+        try {
+            let categoryName: string = '';
+            let withSub: boolean = true;
+
+            if(params.name) {
+                categoryName = params.name;
+            }
+            if(params.withSub) {
+                withSub = params.withSub;
+            }
+            
+            const r = await this.core.getCategories(categoryName, withSub);
+
+            ctx.status = 200;
+            ctx.body = r;
+        } catch(e) {
+            e.message += `\n        Request parameters: ${JSON.stringify(params)}`;
+            throw e;
+        }
+    }
+
+    private async addCategory(ctx: koa.ParameterizedContext, next: () => Promise<any>)
+    {
+        const params = ctx.request.body;
+
+        if(!params.name) {
+            throw new MissingRequiredParametersError(['name']);
+        }
+
+        try {
+            await this.core.addCategory(name);
+
+            ctx.status = 204;
+        } catch(e) {
+            e.message += `\n        Request parameters: ${JSON.stringify(params)}`;
+            throw e;
+        }
+    }
+
+    private async deleteCategory(ctx: koa.ParameterizedContext, next: () => Promise<any>)
+    {
+        const params = ctx.request.body;
+
+        if(!params.name) {
+            throw new MissingRequiredParametersError(['name']);
+        }
+
+        try {
+            await this.core.deleteCategory(name);
 
             ctx.status = 204;
         } catch(e) {

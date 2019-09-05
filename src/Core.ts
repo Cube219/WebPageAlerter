@@ -250,6 +250,34 @@ export class Core
         }
     }
 
+    async getCategories(name: string, withSub: boolean)
+    {
+        if(withSub == false) {
+            const res = await DB.getCategory(name);
+            if(res == null) {
+                return []
+            } else {
+                return [res];
+            }
+        } else {
+            return await DB.getCategoriesWithSub(name);
+        }
+    }
+
+    async addCategory(name: string)
+    {
+        await DB.insertCategory(name);
+
+        Log.info(`Core: Inserted a category.\n        name: ${name}`);
+    }
+
+    async deleteCategory(name: string)
+    {
+        await DB.deleteCategory(name);
+
+        Log.info(`Core: Deleted a category.\n        name: ${name}`);
+    }
+
     private async verifySite(info: WebSiteInfo)
     {
         let res: any;
