@@ -1,12 +1,16 @@
 import fs from "fs";
 import rq from "request-promise-native";
 import cheerio from "cheerio";
+import sharp from "sharp";
 
 import { WebSiteInfo, WebPageInfo, rimrafPromise, relToAbsUrl, getPageInfo } from "./Utility";
 import { DB } from "./DB";
 import { WebSiteWatcher, WebSiteWatcherInitializer } from "./WebSiteWatcher";
 import { Log } from "./Log";
 import { SiteNotFoundError, PageNotFoundError, InvalidUrlError, InvalidCssSelectorError } from "./Errors";
+import request from "request";
+import { stream } from "winston";
+import { Stream } from "stream";
 
 // Function params
 interface UpdateWebSiteParams
@@ -146,8 +150,7 @@ export class Core
 
         let newImagePath:string;
         try {
-            const imageData = await rq(info.imageUrl, {encoding: "binary"});
-            newImagePath = await this.saveImage(info._id, info.imageUrl, imageData);
+            newImagePath = await this.saveImage(info._id, info.imageUrl);
         } catch (e) {
             newImagePath = "";
         }
@@ -202,9 +205,9 @@ export class Core
 
         let newImagePath:string;
         try {
-            const imageData = await rq(info.imageUrl, {encoding: "binary"});
-            newImagePath = await this.saveImage(info._id, info.imageUrl, imageData);
+            newImagePath = await this.saveImage(info._id, info.imageUrl);
         } catch (e) {
+            console.log(e);
             newImagePath = "";
         }
 
@@ -272,8 +275,12 @@ export class Core
         }
     }
 
-    private async saveImage(id: string, oldPath: string, imageData: any)
+    private async saveImage(id: string, path: string)
     {
+        if(path == "") {
+            return "";
+        }
+
         const dataDirPath = `page_data/${id}/`;
         if(fs.existsSync("page_data") == false) {
             await fs.promises.mkdir("page_data");
@@ -281,17 +288,18 @@ export class Core
         if(fs.existsSync(dataDirPath) == false) {
             await fs.promises.mkdir(dataDirPath);
         }
+
+        const newPath = dataDirPath + "image.png";
+
+        const transformer = sharp().resize(800, null, { withoutEnlargement: true }).png();
+        const writeStream = fs.createWriteStream(newPath);
         
-        let imagePath: string = "";
-        const fileExtension = oldPath.match(/\.\w{3,4}($|\?)/i);
-        if(fileExtension) {
-            imagePath = dataDirPath + "image" + fileExtension[0];
-        } else {
-            imagePath = dataDirPath + "image";
-        }
 
-        await fs.promises.writeFile(imagePath, imageData, "binary");
+        const requestPromise = rq(path)
+        requestPromise.pipe(transformer).pipe(writeStream);
 
-        return imagePath;
+        await requestPromise;
+        
+        return newPath;
     }
 }
