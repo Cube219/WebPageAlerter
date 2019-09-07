@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { PromiseProvider } from "mongoose";
 import { WebSiteInfo, WebPageInfo, isLessAppVersion } from "./Utility";
 import { Log } from "./Log";
 import { CategoryNotFoundError, AlreadyExistedError } from "./Errors";
@@ -143,6 +143,9 @@ class DB
         if(isLessAppVersion(0, 1, 10) == true) {
             await this.updateVersion_0_1_10();
         }
+        if(isLessAppVersion(0, 3, 0) == true) {
+            await this.updateVersion_0_3_0();
+        }
 
         Log.info("Started DB.");
     }
@@ -203,10 +206,55 @@ class DB
             }
         };
 
-        await webPages.forEach(addSiteTitle);
-        await archievedWebPages.forEach(addSiteTitle_archieved);
+        await Promise.all(webPages.map(async (e) => {
+            await addSiteTitle(e);
+        }));
+        await Promise.all(archievedWebPages.map(async (e) => {
+            await addSiteTitle_archieved(e);
+        }));
 
         Log.info("DB: Updated version to 0.1.10 (Added siteTitle in savedWebPage schema)");
+    }
+    async updateVersion_0_3_0() {
+        // v0.3.0: Created category collection
+        let categoryList: string[] = [];
+
+        const webSites: WebSiteInfo[] = await this.getWebSites();
+        const webPages: WebPageInfo[] = await this.getPages({}, false);
+        const archievedWebPages: WebPageInfo[] = await this.getPages({}, true);
+
+
+        const extractCategory = (e: any) => {
+            const category = e.category;
+            
+            let isExisted: boolean = false;
+            for (const it of categoryList) {
+                if(it === category) {
+                    isExisted = true;
+                    break;
+                }
+            }
+
+            if(isExisted == false) {
+                categoryList.push(category);
+            }
+        };
+        webSites.forEach(extractCategory);
+        webPages.forEach(extractCategory);
+        archievedWebPages.forEach(extractCategory);
+
+        const addCategory = async (category: string) => {
+            try {
+                await this.insertCategory(category);
+            } catch(e) {
+                // Do nothing
+            }
+        };
+        await Promise.all(categoryList.map(async (e) => {
+            await addCategory(e);
+        }));
+
+        Log.info("DB: Updated version to 0.3.0 (Created category collection)");
     }
 
     shutdown()
