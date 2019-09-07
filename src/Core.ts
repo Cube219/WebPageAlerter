@@ -143,7 +143,7 @@ export class Core
         return DB.getPages(params, fromArchieved);
     }
 
-    async insertPage(info: WebPageInfo)
+    async insertPage(info: WebPageInfo, urlInElement: string)
     {
         const dbRes = await DB.insertPage(info);
         info._id = dbRes._id;
@@ -157,7 +157,8 @@ export class Core
 
         await Promise.all([
             DB.updatePage(info._id, { imageUrl: newImagePath }),
-            DB.updateWebSite(info.siteId, { lastUrl: info.url })
+            // Because the url may be changed when enter the link, so put the url in the element
+            DB.updateWebSite(info.siteId, { lastUrl: urlInElement })
         ]);
 
         Log.info(`Core: Added a new page. (Site id: ${info.siteId})\n        id: ${info._id} / title: ${info.title}`);

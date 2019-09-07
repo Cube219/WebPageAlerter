@@ -134,7 +134,7 @@ export class WebSiteWatcher
         info.siteTitle = this.siteInfo.title;
         info.category = this.siteInfo.category;
 
-        await this.core.insertPage(info);
+        await this.core.insertPage(info, pageUrl);
 
         this.siteInfo.lastUrl = pageUrl;
     }
