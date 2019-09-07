@@ -1,4 +1,4 @@
-FROM node:10.14.1 AS installer
+FROM node:10.14.1-alpine AS installer
 
 WORKDIR /usr/src/WebPageAlerter/build
 COPY package*.json ./
@@ -18,7 +18,7 @@ RUN tsc
 
 # ----------------------------
 
-FROM node:10.14.1-slim
+FROM node:10.14.1-alpine
 
 WORKDIR /app/WebPageAlerter
 
