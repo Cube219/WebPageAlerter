@@ -243,15 +243,8 @@ class DB
         webPages.forEach(extractCategory);
         archievedWebPages.forEach(extractCategory);
 
-        const addCategory = async (category: string) => {
-            try {
-                await this.insertCategory(category);
-            } catch(e) {
-                // Do nothing
-            }
-        };
         await Promise.all(categoryList.map(async (e) => {
-            await addCategory(e);
+            await this.insertCategory(e, true);
         }));
 
         Log.info("DB: Updated version to 0.3.0 (Created category collection)");
@@ -453,11 +446,15 @@ class DB
         return res;
     }
 
-    async insertCategory(name: string)
+    async insertCategory(name: string, ignoreIfExisted: boolean = false)
     {
         const queryRes = await CategoryInfoModel.findOne({ name: name });
         if(queryRes != null) {
-            throw new AlreadyExistedError(name);
+            if(!ignoreIfExisted) {
+                throw new AlreadyExistedError(name);
+            } else {
+                return undefined;
+            }
         }
 
         const doc = new CategoryInfoModel({ name: name });
