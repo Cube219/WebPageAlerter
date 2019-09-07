@@ -3,8 +3,8 @@ FROM node:10.14.1 AS installer
 WORKDIR /usr/src/WebPageAlerter/build
 COPY package*.json ./
 
-RUN npm install
-RUN npm install -g typescript
+RUN npm install --production
+RUN npm install -g --production typescript
 
 # ----------------------------
 
