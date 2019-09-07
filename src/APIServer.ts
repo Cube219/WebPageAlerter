@@ -467,9 +467,11 @@ export class APIServer
                 categoryName = params.name;
             }
             if(params.withSub) {
-                withSub = params.withSub;
+                const temp = parseBoolean(params.withSub);
+                if(temp != undefined) {
+                    withSub = temp;
+                }
             }
-            
             const r = await this.core.getCategories(categoryName, withSub);
 
             ctx.status = 200;

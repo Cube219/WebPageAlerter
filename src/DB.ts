@@ -443,7 +443,7 @@ class DB
     {
         // TODO: name 오름차순으로 출력
 
-        const queryRes = await CategoryInfoModel.find({ name: /${name}.*/ });
+        const queryRes = await CategoryInfoModel.find({ name: new RegExp(`${name}.*`) });
 
         let res: string[] = [];
         for(var i in queryRes) {
