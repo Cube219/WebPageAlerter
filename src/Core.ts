@@ -321,7 +321,7 @@ export class Core
 
         const newPath = dataDirPath + "image.png";
 
-        const transformer = sharp().resize(800, null, { withoutEnlargement: true }).png();
+        const transformer = sharp().resize(400, null, { withoutEnlargement: true }).png();
         const writeStream = fs.createWriteStream(newPath);
         
 
