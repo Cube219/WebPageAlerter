@@ -27,6 +27,7 @@ interface GetPagesParams
 {
     onlyUnread?: boolean;
     category?: string;
+    categoryWithSub?: boolean;
     startIndex?: number;
     afterId?: string;
     count?: number;

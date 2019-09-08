@@ -97,6 +97,7 @@ interface GetPagesParams
 {
     onlyUnread?: boolean;
     category?: string;
+    categoryWithSub?: boolean;
     startIndex?: number;
     afterId?: string;
     count?: number;
@@ -324,7 +325,11 @@ class DB
             condition["isRead"] = { $eq: false };
         }
         if(params.category) {
-            condition["category"] = { $eq: params.category };
+            if(params.categoryWithSub != undefined && params.categoryWithSub == false) {
+                condition["category"] = { $eq: params.category };
+            } else {
+                condition["category"] = { $regex: new RegExp(`${params.category}.*`) };
+            }
         }
 
         let query: mongoose.DocumentQuery<ISavedWebPage[], ISavedWebPage>;

@@ -257,6 +257,7 @@ export class APIServer
             const r = await this.core.getPages({
                 onlyUnread: (params.onlyUnread == "true"),
                 category: params.category,
+                categoryWithSub: parseBoolean(params.categoryWithSub),
                 startIndex: startIndex,
                 afterId: params.afterId,
                 count: parseInt(params.count)
@@ -285,6 +286,7 @@ export class APIServer
             const r = await this.core.getPages({
                 onlyUnread: (params.onlyUnread == "true"),
                 category: params.category,
+                categoryWithSub: parseBoolean(params.categoryWithSub),
                 startIndex: startIndex,
                 afterId: params.afterId,
                 count: parseInt(params.count)
