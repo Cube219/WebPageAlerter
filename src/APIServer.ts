@@ -400,7 +400,7 @@ export class APIServer
             params.category = "general";
         }
         if(!params.checkingCycleSec) {
-            params.checkingCycleSec = 900;
+            params.checkingCycleSec = 3600;
         }
 
         try {

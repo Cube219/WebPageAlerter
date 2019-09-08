@@ -38,9 +38,9 @@ export class WebSiteWatcher
         }
 
         if(!this.siteInfo.checkingCycleSec) {
-            this.siteInfo.checkingCycleSec = 900;
+            this.siteInfo.checkingCycleSec = 3600;
 
-            DB.updateWebSite(this.siteInfo._id, { checkingCycleSec: 900 });
+            DB.updateWebSite(this.siteInfo._id, { checkingCycleSec: 3600 });
         }
 
         // Delay checking when initialized
