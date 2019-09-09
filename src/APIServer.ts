@@ -143,7 +143,7 @@ export class APIServer
         this.koaApp.use(authRouter.routes());
         this.koaApp.use(authRouter.allowedMethods())
 
-        this.koaApp.use(koaMount("/page_data", koaStatic("page_data")));
+        this.koaApp.use(koaMount("/page_data", koaStatic("page_data", { maxage: 2592000000 /* 30 days */ })));
 
         if(this.disableAuth == false) {
             this.koaApp.use(this.authMiddleware.bind(this));
