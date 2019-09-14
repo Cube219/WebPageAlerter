@@ -117,6 +117,13 @@ class DB
 
     async init(init: DBInitializer)
     {
+        if(init.url == undefined) {
+            init.url = "localhost"
+        }
+        if(isNaN(init.port)) {
+            init.port = 27017;
+        }
+
         await mongoose.connect(`mongodb://${init.url}:${init.port}/web_page_alerter`, { useNewUrlParser: true });
 
         const appInfoRes = await AppInfoModel.findOne();
@@ -148,7 +155,7 @@ class DB
             await this.updateVersion_0_3_0();
         }
 
-        Log.info("Started DB.");
+        Log.info(`Started DB. (${init.url}:${init.port})`);
     }
 
     async updateVersion_0_1_6() {

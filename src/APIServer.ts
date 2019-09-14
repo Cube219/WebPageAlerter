@@ -27,7 +27,7 @@ export interface APIServerInitializer
 
     password: string;
     jwtSecretKey: string;
-    disableAuth?: boolean;
+    enableAuth?: boolean;
 }
 
 export class APIServer
@@ -38,7 +38,7 @@ export class APIServer
     private port: number;
     private password: string; // TODO: 해싱해서 보관하기
     private jwtSecretKey: string;
-    private disableAuth: boolean;
+    private enableAuth: boolean;
 
     private http2Server!: http2.Http2SecureServer;
     private httpServer!: http.Server;
@@ -56,9 +56,9 @@ export class APIServer
         }
         this.password = init.password;
         this.jwtSecretKey = init.jwtSecretKey;
-        this.disableAuth = false;
-        if(init.disableAuth) {
-            this.disableAuth = init.disableAuth;
+        this.enableAuth = false;
+        if(init.enableAuth) {
+            this.enableAuth = init.enableAuth;
         }
 
         this.koaApp = new koa();
@@ -145,7 +145,7 @@ export class APIServer
 
         this.koaApp.use(koaMount("/page_data", koaStatic("page_data", { maxage: 2592000000 /* 30 days */ })));
 
-        if(this.disableAuth == false) {
+        if(this.enableAuth == true) {
             this.koaApp.use(this.authMiddleware.bind(this));
         }
 

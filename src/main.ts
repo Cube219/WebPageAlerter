@@ -24,7 +24,7 @@ const api = new APIServer({
     certPath: process.env.API_SERVER_CERT_PATH as string,
     password: process.env.API_SERVER_PASSWORD as string,
     jwtSecretKey: process.env.JWT_SIGNATURE_SECRET_KEY as string,
-    disableAuth: (process.env.API_SERVER_DISABLE_AUTH  === 'true')
+    enableAuth: (process.env.API_SERVER_ENABLE_AUTH  === 'true')
 });
 
 // ------------------------------------------------
