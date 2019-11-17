@@ -90,12 +90,19 @@ export async function getPageInfo(pageUrl: string)
     let title = "";
     selected = $('meta[property="og:title"]');
     if(selected.length != 0) {
-        title = selected[0].attribs.content
+        title = selected[0].attribs.content;
+    } else {
+        selected = $('title');
+        if(selected.length != 0) {
+            title = selected.text();
+        }
     }
     let url = "";
     selected = $('meta[property="og:url"]');
     if(selected.length != 0) {
         url = selected[0].attribs.content;
+    } else {
+        url = pageUrl;
     }
     let imageUrl = "";
     selected = $('meta[property="og:image"]');
