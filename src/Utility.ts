@@ -108,6 +108,11 @@ export async function getPageInfo(pageUrl: string)
     selected = $('meta[property="og:image"]');
     if(selected.length != 0) {
         imageUrl = selected[0].attribs.content;
+    } else {
+        selected = $('meta[property="og:image:secure_url"]');
+        if(selected.length != 0) {
+            imageUrl = selected[0].attribs.content;
+        }
     }
     let desc = "";
     selected = $('meta[property="og:description"]');
