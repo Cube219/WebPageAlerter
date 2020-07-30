@@ -493,7 +493,7 @@ export class APIServer
         }
 
         try {
-            await this.core.addCategory(name);
+            await this.core.addCategory(params.name);
 
             ctx.status = 204;
         } catch(e) {
@@ -511,7 +511,7 @@ export class APIServer
         }
 
         try {
-            await this.core.deleteCategory(name);
+            await this.core.deleteCategory(params.name);
 
             ctx.status = 204;
         } catch(e) {
