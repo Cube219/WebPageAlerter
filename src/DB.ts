@@ -293,6 +293,9 @@ class DB
         infoWithout_id._id = undefined;
 
         const doc = new WebSiteInfoModel(infoWithout_id);
+
+        this.insertCategory(info.category, true);
+
         return doc.save();
     }
 
@@ -386,6 +389,9 @@ class DB
         infoWithout_id._id = undefined;
 
         const doc = new SavedWebPageModel(infoWithout_id);
+
+        this.insertCategory(info.category, true);
+
         return doc.save();
     }
 
@@ -396,6 +402,9 @@ class DB
         infoWithout_id._id = undefined;
 
         const doc = new ArchievedWebPageModel(infoWithout_id);
+
+        this.insertCategory(info.category, true);
+
         return doc.save();
     }
 
