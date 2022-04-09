@@ -39,7 +39,7 @@
     "koa-mount": "^4.0.0",
     "koa-router": "^7.4.0",
     "koa-static": "^5.0.0",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "mongodb": "^3.2.7",
     "mongoose": "^5.7.5",
     "request": "^2.88.0",
